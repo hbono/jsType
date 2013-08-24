@@ -2,7 +2,7 @@ jsType - an OpenType font renderer written in JavaScript
 
 1. Background
 
-This project is a yet another JavaScript library that renders OpenType fonts.
+This project is yet another JavaScript library that renders OpenType fonts.
 
 2. Usage
 
