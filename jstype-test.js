@@ -105,7 +105,8 @@ test.addWordInput_ = function(parent) {
   var word = document.createElement('input');
   word.type = 'text';
   word.id = 'word';
-  word.value = '\u00e9';
+  // word.value = '\u00e9';
+  word.value = '\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064A\u0643\u0645';
   word.disabled = true;
   group.appendChild(word);
 
