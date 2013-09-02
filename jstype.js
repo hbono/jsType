@@ -191,35 +191,82 @@ org.jstype.readArray16 = function(data, offset, count) {
 };
 
 /**
- * A class representing an offset Table.
+ * Reads a list of 32-bit signed integers.
  * @param {Uint8Array} data
+ * @param {number} offset
+ * @param {number} count
+ * @return {Array.<number>}
+ * @private
+ */
+org.jstype.readArray32 = function(data, offset, count) {
+  var list = [];
+  for (var i = 0; i < count; ++i) {
+    list.push(org.jstype.read32(data, offset));
+    offset += 4;
+  }
+  return list;
+};
+
+/**
+ * A class representing a TTC (TrueType Collection) header.
+ * @param {Uint8Array} data
+ * @param {number} offset
  * @constructor
  */
-org.jstype.OffsetTable = function(data) {
+org.jstype.CollectionHeader = function(data, offset) {
   /**
+   * The version of this header, it must be either 0x00010000 (1.0) or
+   * 0x00020000 (2.0).
    * @const {number}
    */
-  this.version = org.jstype.read32(data, 0);
+  this.version = org.jstype.read32(data, offset + 4);
+
+  /**
+   * The number of TrueType fonts in this collection.
+   * @const {number}
+   */
+  var numFonts = org.jstype.read32(data, offset + 8);
+
+  /**
+   * The offsets to the TrueType fonts in this collection.
+   * @const {Array.<number>}
+   */
+  this.offsetTable = org.jstype.readArray32(data, offset + 12, numFonts);
+};
+
+/**
+ * A class representing an offset Table.
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @constructor
+ */
+org.jstype.OffsetTable = function(data, offset) {
+  /**
+   * The version of this OpenType font, it must be 0x00010000 (1.0).
+   * @const {number}
+   */
+  this.version = org.jstype.read32(data, offset);
+
+  /**
+   * The number of font tables in this font.
+   * @const {number}
+   */
+  this.numTables = org.jstype.read16(data, offset + 4);
 
   /**
    * @const {number}
    */
-  this.numTables = org.jstype.read16(data, 4);
+  this.searchRange = org.jstype.read16(data, offset + 6);
 
   /**
    * @const {number}
    */
-  this.searchRange = org.jstype.read16(data, 6);
+  this.entrySelector = org.jstype.read16(data, offset + 8);
 
   /**
    * @const {number}
    */
-  this.entrySelector = org.jstype.read16(data, 8);
-
-  /**
-   * @const {number}
-   */
-  this.rangeShift = org.jstype.read16(data, 10);
+  this.rangeShift = org.jstype.read16(data, offset + 10);
 };
 
 /**
@@ -2136,15 +2183,36 @@ org.jstype.Glyph.sort = function(a, b) {
  */
 org.jstype.CharacterIterator = function(text, direction) {
   /**
+   * Unicode code-points sorted in the visual order.
    * @const {Array.<number>}
    * @private
    */
-  this.data_ = org.jstype.CharacterIterator.getData_(text, direction);
+  this.text_ = org.jstype.CharacterIterator.getVisualText_(text, direction);
+
+  /**
+   * The length of this visual text. This variable is for compatibility
+   * with the String object of JavaScript.
+   * @const {number}
+   */
+  this.length = this.text_.length;
+};
+
+/**
+ * A ligature used by the CharacterIterator class to create a visual run.
+ * @param {number} code
+ * @param {number} length
+ * @constructor
+ */
+org.jstype.CharacterIterator.Ligature = function(code, length) {
+  /**
+   * @const {number}
+   */
+  this.code = code;
 
   /**
    * @const {number}
    */
-  this.length = this.data_.length;
+  this.length = length;
 };
 
 /**
@@ -2295,43 +2363,95 @@ org.jstype.CharacterIterator.ArabicForms = {
 };
 
 /**
- * Ligatures for Arabic scripts.
- * @type {Object.<string,Array.<Object>>}
- * @const
+ * Retrieves an Arabic ligature.
+ * @param {number} prefix
+ * @param {number} code
+ * @return {org.jstype.CharacterIterator.Ligature}
  */
-org.jstype.CharacterIterator.LIGATURES = {
-  '\u0622': [
+org.jstype.CharacterIterator.getArabicLigature_ = function(prefix, code) {
+  if (prefix == 0xFEDF) {
     // ARABIC LETTER LAM INITIAL FORM + ARABIC LETTER ALEF WITH MADDA ABOVE
     // -> ARABIC LIGATURE LAM WITH ALEF WITH MADDA ABOVE ISOLATED FORM
-    { prefix: [0xFEDF], code: 0xFEF5 },
-    // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF WITH MADDA ABOVE
-    // -> ARABIC LIGATURE LAM WITH ALEF WITH MADDA ABOVE FINAL FORM
-    { prefix: [0xFEE0], code: 0xFEF6 }
-  ],
-  '\u0623': [
+    if (code == 0x0622) {
+      return new org.jstype.CharacterIterator.Ligature(0xFEF5, 1);
+    }
     // ARABIC LETTER LAM INITIAL FORM + ARABIC LETTER ALEF WITH HAMZA ABOVE
     // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA ABOVE ISOLATED FORM
-    { prefix: [0xFEDF], code: 0xFEF7 },
-    // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF WITH HAMZA ABOVE
-    // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA ABOVE FINAL FORM
-    { prefix: [0xFEE0], code: 0xFEF8 }
-  ],
-  '\u0625': [
+    if (code == 0x0623) {
+      return new org.jstype.CharacterIterator.Ligature(0xFEF7, 1);
+    }
     // ARABIC LETTER LAM INITIAL FORM + ARABIC LETTER ALEF WITH HAMZA BELOW
     // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA BELOW ISOLATED FORM
-    { prefix: [0xFEDF], code: 0xFEF9 },
-    // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF WITH HAMZA BELOW
-    // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA BELOW FINAL FORM
-    { prefix: [0xFEE0], code: 0xFEFA }
-  ],
-  '\u0627': [
+    if (code == 0x0625) {
+      return new org.jstype.CharacterIterator.Ligature(0xFEF9, 1);
+    }
     // ARABIC LETTER LAM INITIAL FORM + ARABIC LETTER ALEF
     // -> ARABIC LIGATURE LAM WITH ALEF ISOLATED FORM
-    { prefix: [0xFEDF], code: 0xFEFB },
+    if (code == 0x0627) {
+      return new org.jstype.CharacterIterator.Ligature(0xFEFB, 1);
+    }
+  } else if (prefix == 0xFEE0) {
+    // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF WITH MADDA ABOVE
+    // -> ARABIC LIGATURE LAM WITH ALEF WITH MADDA ABOVE FINAL FORM
+    if (code == 0x0622) {
+      return new org.jstype.CharacterIterator.Ligature(0xFEF6, 1);
+    }
+    // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF WITH HAMZA ABOVE
+    // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA ABOVE FINAL FORM
+    if (code == 0x0623) {
+      return new org.jstype.CharacterIterator.Ligature(0xFEF8, 1);
+    }
+    // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF WITH HAMZA BELOW
+    // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA BELOW FINAL FORM
+    if (code == 0x0625) {
+      return new org.jstype.CharacterIterator.Ligature(0xFEFA, 1);
+    }
     // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF
     // -> ARABIC LIGATURE LAM WITH ALEF FINAL FORM
-    { prefix: [0xFEE0], code: 0xFEFC }
-  ]
+    if (code == 0x0627) {
+      return new org.jstype.CharacterIterator.Ligature(0xFEFC, 1);
+    }
+  }
+  return null;
+};
+
+/**
+ * Creates the visual run of an Arabic word.
+ * @param {Array.<number>} word
+ * @return {Array.<number>}
+ * @private
+ */
+org.jstype.CharacterIterator.getArabicRun_ = function(word) {
+  var length = word.length;
+  if (length == 1) {
+    word[0] = org.jstype.CharacterIterator.ArabicForms.ISOL[word[0] & 0xff];
+    return word;
+  }
+  var visualWord = [];
+  var code = org.jstype.CharacterIterator.ArabicForms.INIT[word[0] & 0xff];
+  var prefix = code;
+  var ligature = null;
+  visualWord.push(code);
+  --length;
+  for (var i = 1; i < length; ++i) {
+    code = org.jstype.CharacterIterator.ArabicForms.MEDI[word[i] & 0xff];
+    ligature = org.jstype.CharacterIterator.getArabicLigature_(prefix, code);
+    if (ligature) {
+      code = ligature.code;
+      visualWord.length -= ligature.length;
+    }
+    visualWord.push(code);
+    prefix = code;
+  }
+  code = org.jstype.CharacterIterator.ArabicForms.FINA[word[length] & 0xff];
+  ligature = org.jstype.CharacterIterator.getArabicLigature_(prefix, code);
+  if (ligature) {
+    code = ligature.code;
+    visualWord.length -= ligature.length;
+  }
+  visualWord.push(code);
+  visualWord.reverse();
+  return visualWord;
 };
 
 /**
@@ -2388,17 +2508,17 @@ org.jstype.CharacterIterator.getLigature_ = function(run, offset, ligatures) {
 };
 
 /**
- * Create a visual run from the specified word and returns it. A
- * JavaScript String stores Unicode characters in the logical order. On the
- * other hand, this font renderer assumes characters are sorted in the visual
- * order. This function changes the character order of the input text so the
- * renderer can use it.
+ * Creates a visual run from the specified word and returns it. A JavaScript
+ * string stores Unicode characters in the logical order. On the other hand,
+ * this font renderer assumes characters are sorted in the visual order. This
+ * function changes the character order of the input text so the renderer can
+ * use it.
  * @param {Array.<number>} word
  * @param {number} script
  * @return {Array.<number>}
  * @private
  */
-org.jstype.CharacterIterator.getVisualRun_ = function(word, script) {
+org.jstype.CharacterIterator.createRun_ = function(word, script) {
   if (script == org.jstype.CharacterIterator.Script.NEUTRAL) {
     return word;
   }
@@ -2409,31 +2529,17 @@ org.jstype.CharacterIterator.getVisualRun_ = function(word, script) {
     }
     return word;
   }
-  // script == org.jstype.CharacterIterator.Script.ARABIC
-  if (length == 1) {
-    word[0] = org.jstype.CharacterIterator.ArabicForms.ISOL[word[0] & 0xff];
-  } else {
-    word[0] = org.jstype.CharacterIterator.ArabicForms.INIT[word[0] & 0xff];
-    --length;
-    for (var i = 1; i < length; ++i) {
-      word[i] = org.jstype.CharacterIterator.ArabicForms.MEDI[word[i] & 0xff];
-    }
-    word[length] =
-        org.jstype.CharacterIterator.ArabicForms.FINA[word[length] & 0xff];
-    word.reverse();
-  }
-  return word;
+  return org.jstype.CharacterIterator.getArabicRun_(word);
 };
 
 /**
- * Creates a list of Unicode code-points (used by this class) from the specified
- * string.
+ * Creates the visual form of the specified text.
  * @param {string} text
  * @param {number} direction
  * @return {Array.<number>}
  * @private
  */
-org.jstype.CharacterIterator.getData_ = function (text, direction) {
+org.jstype.CharacterIterator.getVisualText_ = function(text, direction) {
   var runs = [];
   var word = [];
   var script = org.jstype.CharacterIterator.Script.NEUTRAL;
@@ -2451,7 +2557,7 @@ org.jstype.CharacterIterator.getData_ = function (text, direction) {
       var codeScript = org.jstype.CharacterIterator.getScript_(code);
       if (codeScript != script) {
         if (word.length > 0) {
-          runs.push(org.jstype.CharacterIterator.getVisualRun_(word, script));
+          runs.push(org.jstype.CharacterIterator.createRun_(word, script));
           direction +=
               (script == org.jstype.CharacterIterator.Script.NEUTRAL) ? 1 : -1;
         }
@@ -2462,7 +2568,7 @@ org.jstype.CharacterIterator.getData_ = function (text, direction) {
     }
   }
   if (word.length > 0) {
-    runs.push(org.jstype.CharacterIterator.getVisualRun_(word, script));
+    runs.push(org.jstype.CharacterIterator.createRun_(word, script));
     direction +=
         (script == org.jstype.CharacterIterator.Script.NEUTRAL) ? 1 : -1;
   }
@@ -2482,7 +2588,7 @@ org.jstype.CharacterIterator.getData_ = function (text, direction) {
  * @return {number}
  */
 org.jstype.CharacterIterator.prototype.charCodeAt = function(n) {
-  return this.data_[n];
+  return this.text_[n];
 };
 
 /**
@@ -2555,10 +2661,11 @@ org.jstype.FontReader = function(data, size, opt_glyphQuota) {
 
 /**
  * Opens the specified font.
+ * @param {number} id
  * @return {boolean}
  * @private
  */
-org.jstype.FontReader.prototype.openFont_ = function() {
+org.jstype.FontReader.prototype.openFont_ = function(id) {
   if (this.cmap_) {
     return true;
   }
@@ -2568,8 +2675,19 @@ org.jstype.FontReader.prototype.openFont_ = function() {
   this.glyphList_ = [];
   this.glyphFrame_ = 0;
 
+  // Open the first font if this font is a TrueType collection, i.e. this given
+  // data starts with a TTC tag.
+  var offset = 0;
+  var ttcTag = org.jstype.read32(this.data_, offset);
+  if (ttcTag == 0x74746366) {
+    var ttc = new org.jstype.CollectionHeader(this.data_, offset);
+    if (ttc.offsetTable.length < id) {
+      return false;
+    }
+    offset = ttc.offsetTable[id];
+  }
   // Read TrueType headers required for creating a mapping table.
-  var offsetTable = new org.jstype.OffsetTable(this.data_);
+  var offsetTable = new org.jstype.OffsetTable(this.data_, offset);
   if (offsetTable.version != 0x00010000) {
     return false;
   }
@@ -2577,7 +2695,7 @@ org.jstype.FontReader.prototype.openFont_ = function() {
    * @type {Object.<string,org.jstype.TableRecord>}
    */
   var records = {};
-  var offset = 12;
+  offset += 12;
   for (var i = 0; i < offsetTable.numTables; ++i) {
     var record = new org.jstype.TableRecord(this.data_, offset);
     records[record.tag] = record;
@@ -2834,7 +2952,7 @@ org.jstype.FontReader.getGrayBitmap_ = function(data, width, height, colors) {
  * @return {Array.<number>}
  */
 org.jstype.FontReader.prototype.measure = function(text, fontSize) {
-  if (!this.openFont_()) {
+  if (!this.openFont_(0)) {
     return [];
   }
   var x = 0;
@@ -2863,7 +2981,7 @@ org.jstype.FontReader.prototype.draw = function(text,
                                                 data,
                                                 width,
                                                 height) {
-  if (!this.openFont_()) {
+  if (!this.openFont_(0)) {
     return 0;
   }
   var run = new org.jstype.CharacterIterator(text, 0);
