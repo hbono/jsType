@@ -1,4 +1,4 @@
-// Copyright 2013 Hironori Bono. All Rights Reserved.
+﻿// Copyright 2013 Hironori Bono. All Rights Reserved.
 
 // Create a namespace 'org.jstype' used in this file.
 var org = org || {};
@@ -31,6 +31,194 @@ org.jstype.FILL_GLYPH = true;
  * @const
  */
 org.jstype.global = this;
+
+/**
+ * Character codes representing the contextual forms of Arabic scripts. An
+ * Arabic character has up to four contextual forms (initial, medial, final, and
+ * isolated) and Unicode assigns one code for each form. This table provides a
+ * mapping from Arabic scripts (U+0600...U+06FF) to their contextual forms.
+ * @enum {Array.<number>}
+ * @const
+ */
+org.jstype.ArabicForms = {
+  INIT: [
+    0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x0606, 0x0607,
+    0x0608, 0x0609, 0x060a, 0x060b, 0x060c, 0x060d, 0x060e, 0x060f,
+    0x0610, 0x0611, 0x0612, 0x0613, 0x0614, 0x0615, 0x0616, 0x0617,
+    0x0618, 0x0619, 0x061a, 0x061b, 0x061c, 0x061d, 0x061e, 0x061f,
+    0x0620, 0x0621, 0x0622, 0x0623, 0x0624, 0x0625, 0xfe8b, 0x0627,
+    0xfe91, 0x0629, 0xfe97, 0xfe9b, 0xfe9f, 0xfea3, 0xfea7, 0x062f,
+    0x0630, 0x0631, 0x0632, 0xfeb3, 0xfeb7, 0xfebb, 0xfebf, 0xfec3,
+    0xfec7, 0xfecb, 0xfecf, 0x063b, 0x063c, 0x063d, 0x063e, 0x063f,
+    0x0640, 0xfed3, 0xfed7, 0xfedb, 0xfedf, 0xfee3, 0xfee7, 0xfeeb,
+    0x0648, 0x0649, 0xfef3, 0x064b, 0x064c, 0x064d, 0x064e, 0x064f,
+    0x0650, 0x0651, 0x0652, 0x0653, 0x0654, 0x0655, 0x0656, 0x0657,
+    0x0658, 0x0659, 0x065a, 0x065b, 0x065c, 0x065d, 0x065e, 0x065f,
+    0x0660, 0x0661, 0x0662, 0x0663, 0x0664, 0x0665, 0x0666, 0x0667,
+    0x0668, 0x0669, 0x066a, 0x066b, 0x066c, 0x066d, 0x066e, 0x066f,
+    0x0670, 0x0671, 0x0672, 0x0673, 0x0674, 0x0675, 0x0676, 0x0677,
+    0x0678, 0xfb68, 0xfb60, 0xfb54, 0x067c, 0x067d, 0xfb58, 0xfb64,
+    0xfb5c, 0x0681, 0x0682, 0xfb78, 0xfb74, 0x0685, 0xfb7c, 0xfb80,
+    0x0688, 0x0689, 0x068a, 0x068b, 0x068c, 0x068d, 0x068e, 0x068f,
+    0x0690, 0x0691, 0x0692, 0x0693, 0x0694, 0x0695, 0x0696, 0x0697,
+    0x0698, 0x0699, 0x069a, 0x069b, 0x069c, 0x069d, 0x069e, 0x069f,
+    0x06a0, 0x06a1, 0x06a2, 0x06a3, 0xfb6c, 0x06a5, 0xfb70, 0x06a7,
+    0x06a8, 0xfb90, 0x06aa, 0x06ab, 0x06ac, 0xfbd5, 0x06ae, 0xfb94,
+    0x06b0, 0xfb9c, 0x06b2, 0xfb98, 0x06b4, 0x06b5, 0x06b6, 0x06b7,
+    0x06b8, 0x06b9, 0x06ba, 0xfba2, 0x06bc, 0x06bd, 0xfbac, 0x06bf,
+    0x06c0, 0xfba8, 0x06c2, 0x06c3, 0x06c4, 0x06c5, 0x06c6, 0x06c7,
+    0x06c8, 0x06c9, 0x06ca, 0x06cb, 0xfbfe, 0x06cd, 0x06ce, 0x06cf,
+    0xfbe6, 0x06d1, 0x06d2, 0x06d3, 0x06d4, 0x06d5, 0x06d6, 0x06d7,
+    0x06d8, 0x06d9, 0x06da, 0x06db, 0x06dc, 0x06dd, 0x06de, 0x06df,
+    0x06e0, 0x06e1, 0x06e2, 0x06e3, 0x06e4, 0x06e5, 0x06e6, 0x06e7,
+    0x06e8, 0x06e9, 0x06ea, 0x06eb, 0x06ec, 0x06ed, 0x06ee, 0x06ef,
+    0x06f0, 0x06f1, 0x06f2, 0x06f3, 0x06f4, 0x06f5, 0x06f6, 0x06f7,
+    0x06f8, 0x06f9, 0x06fa, 0x06fb, 0x06fc, 0x06fd, 0x06fe, 0x06ff
+  ],
+  MEDI: [
+    0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x0606, 0x0607,
+    0x0608, 0x0609, 0x060a, 0x060b, 0x060c, 0x060d, 0x060e, 0x060f,
+    0x0610, 0x0611, 0x0612, 0x0613, 0x0614, 0x0615, 0x0616, 0x0617,
+    0x0618, 0x0619, 0x061a, 0x061b, 0x061c, 0x061d, 0x061e, 0x061f,
+    0x0620, 0x0621, 0x0622, 0x0623, 0x0624, 0x0625, 0xfe8c, 0x0627,
+    0xfe92, 0x0629, 0xfe98, 0xfe9c, 0xfea0, 0xfea4, 0xfea8, 0x062f,
+    0x0630, 0x0631, 0x0632, 0xfeb4, 0xfeb8, 0xfebc, 0xfec0, 0xfec4,
+    0xfec8, 0xfecc, 0xfed0, 0x063b, 0x063c, 0x063d, 0x063e, 0x063f,
+    0x0640, 0xfed4, 0xfed8, 0xfedc, 0xfee0, 0xfee4, 0xfee8, 0xfeec,
+    0x0648, 0x0649, 0xfef4, 0x064b, 0x064c, 0x064d, 0x064e, 0x064f,
+    0x0650, 0x0651, 0x0652, 0x0653, 0x0654, 0x0655, 0x0656, 0x0657,
+    0x0658, 0x0659, 0x065a, 0x065b, 0x065c, 0x065d, 0x065e, 0x065f,
+    0x0660, 0x0661, 0x0662, 0x0663, 0x0664, 0x0665, 0x0666, 0x0667,
+    0x0668, 0x0669, 0x066a, 0x066b, 0x066c, 0x066d, 0x066e, 0x066f,
+    0x0670, 0x0671, 0x0672, 0x0673, 0x0674, 0x0675, 0x0676, 0x0677,
+    0x0678, 0xfb69, 0xfb61, 0xfb55, 0x067c, 0x067d, 0xfb59, 0xfb65,
+    0xfb5d, 0x0681, 0x0682, 0xfb79, 0xfb75, 0x0685, 0xfb7d, 0xfb81,
+    0x0688, 0x0689, 0x068a, 0x068b, 0x068c, 0x068d, 0x068e, 0x068f,
+    0x0690, 0x0691, 0x0692, 0x0693, 0x0694, 0x0695, 0x0696, 0x0697,
+    0x0698, 0x0699, 0x069a, 0x069b, 0x069c, 0x069d, 0x069e, 0x069f,
+    0x06a0, 0x06a1, 0x06a2, 0x06a3, 0xfb6d, 0x06a5, 0xfb71, 0x06a7,
+    0x06a8, 0xfb91, 0x06aa, 0x06ab, 0x06ac, 0xfbd6, 0x06ae, 0xfb95,
+    0x06b0, 0xfb9d, 0x06b2, 0xfb99, 0x06b4, 0x06b5, 0x06b6, 0x06b7,
+    0x06b8, 0x06b9, 0x06ba, 0xfba3, 0x06bc, 0x06bd, 0xfbad, 0x06bf,
+    0x06c0, 0xfba9, 0x06c2, 0x06c3, 0x06c4, 0x06c5, 0x06c6, 0x06c7,
+    0x06c8, 0x06c9, 0x06ca, 0x06cb, 0xfbff, 0x06cd, 0x06ce, 0x06cf,
+    0xfbe7, 0x06d1, 0x06d2, 0x06d3, 0x06d4, 0x06d5, 0x06d6, 0x06d7,
+    0x06d8, 0x06d9, 0x06da, 0x06db, 0x06dc, 0x06dd, 0x06de, 0x06df,
+    0x06e0, 0x06e1, 0x06e2, 0x06e3, 0x06e4, 0x06e5, 0x06e6, 0x06e7,
+    0x06e8, 0x06e9, 0x06ea, 0x06eb, 0x06ec, 0x06ed, 0x06ee, 0x06ef,
+    0x06f0, 0x06f1, 0x06f2, 0x06f3, 0x06f4, 0x06f5, 0x06f6, 0x06f7,
+    0x06f8, 0x06f9, 0x06fa, 0x06fb, 0x06fc, 0x06fd, 0x06fe, 0x06ff
+  ],
+  FINA: [
+    0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x0606, 0x0607,
+    0x0608, 0x0609, 0x060a, 0x060b, 0x060c, 0x060d, 0x060e, 0x060f,
+    0x0610, 0x0611, 0x0612, 0x0613, 0x0614, 0x0615, 0x0616, 0x0617,
+    0x0618, 0x0619, 0x061a, 0x061b, 0x061c, 0x061d, 0x061e, 0x061f,
+    0x0620, 0x0621, 0xfe82, 0xfe84, 0xfe86, 0xfe88, 0xfe8a, 0xfe8e,
+    0xfe90, 0xfe94, 0xfe96, 0xfe9a, 0xfe9e, 0xfea2, 0xfea6, 0xfeaa,
+    0xfeac, 0xfeae, 0xfeb0, 0xfeb2, 0xfeb6, 0xfeba, 0xfebe, 0xfec2,
+    0xfec6, 0xfeca, 0xfece, 0x063b, 0x063c, 0x063d, 0x063e, 0x063f,
+    0x0640, 0xfed2, 0xfed6, 0xfeda, 0xfede, 0xfee2, 0xfee6, 0xfeea,
+    0xfeee, 0xfef0, 0xfef2, 0x064b, 0x064c, 0x064d, 0x064e, 0x064f,
+    0x0650, 0x0651, 0x0652, 0x0653, 0x0654, 0x0655, 0x0656, 0x0657,
+    0x0658, 0x0659, 0x065a, 0x065b, 0x065c, 0x065d, 0x065e, 0x065f,
+    0x0660, 0x0661, 0x0662, 0x0663, 0x0664, 0x0665, 0x0666, 0x0667,
+    0x0668, 0x0669, 0x066a, 0x066b, 0x066c, 0x066d, 0x066e, 0x066f,
+    0x0670, 0xfb51, 0x0672, 0x0673, 0x0674, 0x0675, 0x0676, 0x0677,
+    0x0678, 0xfb67, 0xfb5f, 0xfb53, 0x067c, 0x067d, 0xfb57, 0xfb63,
+    0xfb5b, 0x0681, 0x0682, 0xfb77, 0xfb73, 0x0685, 0xfb7b, 0xfb7f,
+    0xfb89, 0x0689, 0x068a, 0x068b, 0xfb85, 0xfb83, 0xfb87, 0x068f,
+    0x0690, 0xfb8d, 0x0692, 0x0693, 0x0694, 0x0695, 0x0696, 0x0697,
+    0xfb8b, 0x0699, 0x069a, 0x069b, 0x069c, 0x069d, 0x069e, 0x069f,
+    0x06a0, 0x06a1, 0x06a2, 0x06a3, 0xfb6b, 0x06a5, 0xfb6f, 0x06a7,
+    0x06a8, 0xfb8f, 0x06aa, 0x06ab, 0x06ac, 0xfbd4, 0x06ae, 0xfb93,
+    0x06b0, 0xfb9b, 0x06b2, 0xfb97, 0x06b4, 0x06b5, 0x06b6, 0x06b7,
+    0x06b8, 0x06b9, 0xfb9f, 0xfba1, 0x06bc, 0x06bd, 0xfbab, 0x06bf,
+    0xfba5, 0xfba7, 0x06c2, 0x06c3, 0x06c4, 0xfbe1, 0xfbda, 0xfbd8,
+    0xfbdc, 0xfbe3, 0x06ca, 0xfbdf, 0xfbfd, 0x06cd, 0x06ce, 0x06cf,
+    0xfbe5, 0x06d1, 0xfbaf, 0xfbb1, 0x06d4, 0x06d5, 0x06d6, 0x06d7,
+    0x06d8, 0x06d9, 0x06da, 0x06db, 0x06dc, 0x06dd, 0x06de, 0x06df,
+    0x06e0, 0x06e1, 0x06e2, 0x06e3, 0x06e4, 0x06e5, 0x06e6, 0x06e7,
+    0x06e8, 0x06e9, 0x06ea, 0x06eb, 0x06ec, 0x06ed, 0x06ee, 0x06ef,
+    0x06f0, 0x06f1, 0x06f2, 0x06f3, 0x06f4, 0x06f5, 0x06f6, 0x06f7,
+    0x06f8, 0x06f9, 0x06fa, 0x06fb, 0x06fc, 0x06fd, 0x06fe, 0x06ff
+  ],
+  ISOL: [
+    0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x0606, 0x0607,
+    0x0608, 0x0609, 0x060a, 0x060b, 0x060c, 0x060d, 0x060e, 0x060f,
+    0x0610, 0x0611, 0x0612, 0x0613, 0x0614, 0x0615, 0x0616, 0x0617,
+    0x0618, 0x0619, 0x061a, 0x061b, 0x061c, 0x061d, 0x061e, 0x061f,
+    0x0620, 0xfe80, 0xfe81, 0xfe83, 0xfe85, 0xfe87, 0xfe89, 0xfe8d,
+    0xfe8f, 0xfe93, 0xfe95, 0xfe99, 0xfe9d, 0xfea1, 0xfea5, 0xfea9,
+    0xfeab, 0xfead, 0xfeaf, 0xfeb1, 0xfeb5, 0xfeb9, 0xfebd, 0xfec1,
+    0xfec5, 0xfec9, 0xfecd, 0x063b, 0x063c, 0x063d, 0x063e, 0x063f,
+    0x0640, 0xfed1, 0xfed5, 0xfed9, 0xfedd, 0xfee1, 0xfee5, 0xfee9,
+    0xfeed, 0xfeef, 0xfef1, 0x064b, 0x064c, 0x064d, 0x064e, 0x064f,
+    0x0650, 0x0651, 0x0652, 0x0653, 0x0654, 0x0655, 0x0656, 0x0657,
+    0x0658, 0x0659, 0x065a, 0x065b, 0x065c, 0x065d, 0x065e, 0x065f,
+    0x0660, 0x0661, 0x0662, 0x0663, 0x0664, 0x0665, 0x0666, 0x0667,
+    0x0668, 0x0669, 0x066a, 0x066b, 0x066c, 0x066d, 0x066e, 0x066f,
+    0x0670, 0xfb50, 0x0672, 0x0673, 0x0674, 0x0675, 0x0676, 0xfbdd,
+    0xfbdd, 0xfb66, 0xfb5e, 0xfb52, 0xfbdd, 0xfbdd, 0xfb56, 0xfb62,
+    0xfb5a, 0xfbdd, 0xfbdd, 0xfb76, 0xfb72, 0xfbdd, 0xfb7a, 0xfb7e,
+    0xfb88, 0x0689, 0x068a, 0x068b, 0xfb84, 0xfb82, 0xfb86, 0x068f,
+    0x0690, 0xfb8c, 0x0692, 0x0693, 0x0694, 0x0695, 0x0696, 0x0697,
+    0xfb8a, 0x0699, 0x069a, 0x069b, 0x069c, 0x069d, 0x069e, 0x069f,
+    0x06a0, 0x06a1, 0x06a2, 0x06a3, 0xfb6a, 0x06a5, 0xfb6e, 0x06a7,
+    0x06a8, 0xfb8e, 0x06aa, 0x06ab, 0x06ac, 0xfbd3, 0x06ae, 0xfb92,
+    0x06b0, 0xfb9a, 0x06b2, 0xfb96, 0x06b4, 0x06b5, 0x06b6, 0x06b7,
+    0x06b8, 0x06b9, 0xfb9e, 0xfba0, 0x06bc, 0x06bd, 0xfbaa, 0x06bf,
+    0xfba4, 0xfba6, 0x06c2, 0x06c3, 0x06c4, 0xfbe0, 0xfbd9, 0xfbd7,
+    0xfbdb, 0xfbe2, 0x06ca, 0xfbde, 0xfbfc, 0x06cd, 0x06ce, 0x06cf,
+    0xfbe4, 0x06d1, 0xfbae, 0xfbb0, 0x06d4, 0x06d5, 0x06d6, 0x06d7,
+    0x06d8, 0x06d9, 0x06da, 0x06db, 0x06dc, 0x06dd, 0x06de, 0x06df,
+    0x06e0, 0x06e1, 0x06e2, 0x06e3, 0x06e4, 0x06e5, 0x06e6, 0x06e7,
+    0x06e8, 0x06e9, 0x06ea, 0x06eb, 0x06ec, 0x06ed, 0x06ee, 0x06ef,
+    0x06f0, 0x06f1, 0x06f2, 0x06f3, 0x06f4, 0x06f5, 0x06f6, 0x06f7,
+    0x06f8, 0x06f9, 0x06fa, 0x06fb, 0x06fc, 0x06fd, 0x06fe, 0x06ff
+  ]
+};
+
+/**
+ * Character codes representing the presentation forms of Japanese characters
+ * used for vertical writing.
+ * @enum {Array.<number>}
+ */
+org.jstype.JapaneseForms = {
+  VERT: [
+    0xFE10, 0x002C,
+    0xFE11, 0x3001,
+    0xFE12, 0x3002,
+    0xFE13, 0x003A,
+    0xFE14, 0x003B,
+    0xFE15, 0x0021,
+    0xFE16, 0x003F,
+    0xFE17, 0x3016,
+    0xFE18, 0x3017,
+    0xFE19, 0x2026,
+    0xFE30, 0x2025,
+    0xFE31, 0x2014,
+    0xFE32, 0x2013,
+    0xFE33, 0x005F,
+    0xFE34, 0x005F,
+    0xFE35, 0x0028,
+    0xFE36, 0x0029,
+    0xFE37, 0x007B,
+    0xFE38, 0x007D,
+    0xFE39, 0x3014,
+    0xFE3A, 0x3015,
+    0xFE3B, 0x3010,
+    0xFE3C, 0x3011,
+    0xFE3D, 0x300A,
+    0xFE3E, 0x300B,
+    0xFE3F, 0x3008,
+    0xFE40, 0x3009,
+    0xFE41, 0x300C,
+    0xFE42, 0x300D,
+    0xFE43, 0x300E,
+    0xFE44, 0x300F
+  ]
+};
 
 /**
  * Exposes an object and its methods to the global namespace path.
@@ -419,7 +607,9 @@ org.jstype.MaxpTable = function(data, records) {
 };
 
 /**
- * A class representing a LOCA (Index-to-Location) table.
+ * A class representing a LOCA (Index-to-Location) table. This class reads a
+ * LOCA table and creates a list of absolute offsets to glyphs. (A LOCA table
+ * consists of a list of relative offsets from the beginning of a GLYF table.)
  * @param {Uint8Array} data
  * @param {Object.<string,org.jstype.TableRecord>} records
  * @param {number} numGlyphs
@@ -433,11 +623,16 @@ org.jstype.LocaTable = function(data, records, numGlyphs, format) {
   var offset = records['loca'].tableOffset;
 
   /**
+   * @const {number}
+   */
+  var glyf = records['glyf'].tableOffset;
+
+  /**
    * @const {Array.<number>}
    */
   this.offsets = (format == 0) ?
-      org.jstype.LocaTable.readShortOffsets_(data, offset, numGlyphs) :
-      org.jstype.LocaTable.readLongOffsets_(data, offset, numGlyphs);
+      org.jstype.LocaTable.readShortOffsets_(data, offset, numGlyphs, glyf) :
+      org.jstype.LocaTable.readLongOffsets_(data, offset, numGlyphs, glyf);
 };
 
 /**
@@ -445,15 +640,19 @@ org.jstype.LocaTable = function(data, records, numGlyphs, format) {
  * @param {Uint8Array} data
  * @param {number} offset
  * @param {number} numGlyphs
+ * @param {number} glyf
  * @return {Array.<number>}
  * @private
  */
-org.jstype.LocaTable.readShortOffsets_ = function(data, offset, numGlyphs) {
+org.jstype.LocaTable.readShortOffsets_ = function(data,
+                                                  offset,
+                                                  numGlyphs,
+                                                  glyf) {
   var offsets = [];
   var previous = -1;
   for (var i = 0; i <= numGlyphs; ++i) {
     var value = org.jstype.read16(data, offset) << 1;
-    offsets.push(value > previous ? value : -1);
+    offsets.push(value > previous ? glyf + value : 0);
     previous = value;
     offset += 2;
   }
@@ -466,15 +665,19 @@ org.jstype.LocaTable.readShortOffsets_ = function(data, offset, numGlyphs) {
  * @param {Uint8Array} data
  * @param {number} offset
  * @param {number} numGlyphs
+ * @param {number} glyf
  * @return {Array.<number>}
  * @private
  */
-org.jstype.LocaTable.readLongOffsets_ = function(data, offset, numGlyphs) {
+org.jstype.LocaTable.readLongOffsets_ = function(data,
+                                                 offset,
+                                                 numGlyphs,
+                                                 glyf) {
   var offsets = [];
   var previous = -1;
   for (var i = 0; i <= numGlyphs; ++i) {
     var value = org.jstype.read32(data, offset);
-    offsets.push(value > previous ? value : -1);
+    offsets.push(value > previous ? glyf + value : 0);
     previous = value;
     offset += 4;
   }
@@ -491,7 +694,7 @@ org.jstype.HheaTable = function(data, records) {
   /**
    * @const {number}
    */
-  var offset = records['loca'].tableOffset;
+  var offset = records['hhea'].tableOffset;
 
   /**
    * @const {number}
@@ -548,7 +751,7 @@ org.jstype.HheaTable = function(data, records) {
 };
 
 /**
- * A class representing a HMTX (Horizontal Header) table.
+ * A class representing a HMTX (Horizontal Metrics) table.
  * @param {Uint8Array} data
  * @param {Object.<string,org.jstype.TableRecord>} records
  * @param {org.jstype.HheaTable} hhea
@@ -786,7 +989,6 @@ org.jstype.CodeMap.prototype.openFormat4_ = function(data,
   if (table.format != 4) {
     return false;
   }
-  var glyfOffset =  records['glyf'].tableOffset;
   for (var i = 0; i < table.segCount; ++i) {
     var startCode = table.startCount[i];
     var endCode = table.endCount[i];
@@ -795,12 +997,12 @@ org.jstype.CodeMap.prototype.openFormat4_ = function(data,
       var idRangeOffset = table.idRangeOffset[i];
       for (var code = startCode; code <= endCode; ++code) {
         var glyphId = table.glyphIdArray[idRangeOffset + code - startCode];
-        this.setMap_(code, glyphId, glyfOffset, loca.offsets[glyphId]);
+        this.setMap_(code, glyphId, loca.offsets[glyphId]);
       }
     } else {
       for (var code = startCode; code <= endCode; ++code) {
         var glyphId = (code + idDelta) & 0xffff;
-        this.setMap_(code, glyphId, glyfOffset, loca.offsets[glyphId]);
+        this.setMap_(code, glyphId, loca.offsets[glyphId]);
       }
     }
   }
@@ -812,12 +1014,10 @@ org.jstype.CodeMap.prototype.openFormat4_ = function(data,
  * glyph ID to an offset.
  * @param {number} code
  * @param {number} glyphId
- * @param {number} table
  * @param {number} offset
  * @private
  */
-org.jstype.CodeMap.prototype.setMap_ = function(code, glyphId, table, offset) {
-  offset = (offset < 0) ? 0 : offset + table;
+org.jstype.CodeMap.prototype.setMap_ = function(code, glyphId, offset) {
   var codeHigh = code >> 8;
   if (!this.codeMap_[codeHigh]) {
     this.codeMap_[codeHigh] = org.jstype.CodeMap.createMap_(0);
@@ -867,6 +1067,7 @@ org.jstype.CodeMap.prototype.getGlyphId = function(code) {
 };
 
 /**
+ * Loads a CMAP table and creates the mappings used by this object.
  * @param {Uint8Array} data
  * @param {Object.<string,org.jstype.TableRecord>} records
  * @param {org.jstype.LocaTable} loca
@@ -904,61 +1105,338 @@ org.jstype.CodeMap.prototype.loadTable = function(data, records, loca) {
 };
 
 /**
- * A class representing a GSUB table.
+ * Creates mappings from characters to the glyphs for their alternative
+ * characters. Unicode has some feature-specific or language-specific characters
+ * that not all fonts have mappings for these character codes to glyphs. This
+ * function reads a glyph-substitution table and adds the mappings for such
+ * language-specific or feature-specific characters.
+ * @param {Uint8Array} data
+ * @param {org.jstype.GsubTable} gsub
+ * @param {Array.<number>} codes
+ * @param {string} script
+ * @param {string} language
+ * @param {string} feature
+ */
+org.jstype.CodeMap.prototype.setAlternativeCodes = function(data,
+                                                            gsub,
+                                                            codes,
+                                                            script,
+                                                            language,
+                                                            feature) {
+  var lookups = null;
+  for (var i = 0; i < codes.length; i += 2) {
+    var code = codes[i];
+    if (!this.getGlyphOffset(code)) {
+      // Retrieve lookup tables matching with the specified script, language,
+      // and feature. (There may be two or more tables matching with the given
+      // condition.)
+      if (!lookups) {
+        lookups = gsub.getLookupRecords(data, script, language, feature);
+        if (lookups.length == 0) {
+          return;
+        }
+      }
+      // Find substitute glyphs for the alternative glyph of the given glyph.
+      var altGlyphId = this.getGlyphId(codes[i + 1]);
+      if (altGlyphId) {
+        for (var j = 0; j < lookups.length; ++j) {
+          var glyphId = lookups[j].subTables[altGlyphId];
+          if (glyphId) {
+            var offset = gsub.loca.offsets[glyphId];
+            if (offset) {
+              this.setMap_(code, glyphId, offset);
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
+};
+
+/**
+ * A class representing a GSUB (Glyph-Substitution) table.
  * @param {Uint8Array} data
  * @param {org.jstype.TableRecord} record
+ * @param {org.jstype.LocaTable} loca
  * @constructor
  */
-org.jstype.GsubTable = function(data, record) {
+org.jstype.GsubTable = function(data, record, loca) {
   /**
-   * @type {org.jstype.GsubTable.ScriptList}
+   * @const {org.jstype.LocaTable}
    */
-  this.scriptList = null;
+  this.loca = loca;
 
   /**
-   * @type {org.jstype.GsubTable.FeatureList}
+   * @const {number}
+   * @private
    */
-  this.featureList = null;
+  this.offset_ = record.tableOffset;
+
+  /**
+   * @type {Array.<org.jstype.GsubTable.Script>}
+   * @private
+   */
+  this.scripts_ = null; // org.jstype.GsubTable.readTable_(data, offset);
+};
+
+/**
+ * 
+ * @param {Uint8Array} data
+ * @param {string} script
+ * @param {string} language
+ * @param {string} feature
+ * @return {Array.<org.jstype.GsubTable.LookupRecord>}
+ */
+org.jstype.GsubTable.prototype.getLookupRecords = function(data,
+                                                           script,
+                                                           language,
+                                                           feature) {
+  var lookups = [];
+  if (!this.scripts_) {
+    this.scripts_ = org.jstype.GsubTable.readTable_(data, this.offset_);
+  }
+  for (var i = 0; i < this.scripts_.length; ++i) {
+    var record = this.scripts_[i];
+    if (record.match(script, language, feature)) {
+      for (var j = 0; j < record.offsets.length; ++j) {
+        lookups.push(
+            new org.jstype.GsubTable.LookupRecord(data, record.offsets[j]));
+      }
+    }
+  }
+  return lookups;
+};
+
+/**
+ * A class representing an entry of a glyph-substitution table used by the
+ * org.jstype.GsubTable object.
+ * @param {string} script
+ * @param {string} language
+ * @param {string} feature
+ * @param {Array.<number>} offsets
+ * @constructor
+ */
+org.jstype.GsubTable.Script = function(script, language, feature, offsets) {
+  /**
+   * @const {string}
+   */
+  this.script = script;
+
+  /**
+   * @const {string}
+   */
+  this.language = language;
+
+  /**
+   * @const {string}
+   */
+  this.feature = feature;
+
+  /**
+   * @const {Array.<number>}
+   */
+  this.offsets = offsets;
+};
+
+/**
+ * Returns whether this object matches with the specified values.
+ * @param {string} script
+ * @param {string} language
+ * @param {string} feature
+ * @return {boolean}
+ */
+org.jstype.GsubTable.Script.prototype.match = function(script,
+                                                       language,
+                                                       feature) {
+  return this.script == script &&
+      this.language == language &&
+      this.feature == feature;
+};
+
+/**
+ * Reads a glyph substitution table and returns a list of lookup tables. A GSUB
+ * table consists of three lists (a script list, a feature list, and a lookup
+ * list) to avoid duplicates. This function composes these lists to a flat list
+ * of org.jstype.GsubTable.Script objects for better accessibility.
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @return {Array.<org.jstype.GsubTable.Script>}
+ * @private
+ */
+org.jstype.GsubTable.readTable_ = function(data, offset) {
+  var scripts = [];
+  var version = org.jstype.read32(data, offset);
+  if (version != 0x00010000) {
+    return scripts;
+  }
+  // Read three sub-tables in this table and create a mapping from a language
+  // name to the features provided for the language. Each feature in this table
+  // just includes an offset to a lookup table so we can read it only when we
+  // have to.
+  var scriptRecords = org.jstype.GsubTable.readScriptRecords_(data, offset);
+  var featureRecords = org.jstype.GsubTable.readFeatureRecords_(data, offset);
+  var lookupRecords = org.jstype.GsubTable.readLookupRecords_(data, offset);
+  for (var i = 0; i < scriptRecords.length; ++i) {
+    var script = scriptRecords[i];
+    for (var j = 0; j < script.featureIndices.length; ++j) {
+      var feature = featureRecords[script.featureIndices[j]];
+      var lookupOffsets = [];
+      for (var k = 0; k < feature.lookupIndices.length; ++k) {
+        lookupOffsets.push(lookupRecords[feature.lookupIndices[k]]);
+      }
+      scripts.push(new org.jstype.GsubTable.Script(script.tag,
+                                                   script.language,
+                                                   feature.tag,
+                                                   lookupOffsets));
+    }
+  }
+  return scripts;
 };
 
 /**
  * @param {Uint8Array} data
  * @param {number} offset
+ * @return {Array.<number>}
+ * @private
  */
-org.jstype.GsubTable.prototype.openTable = function(data, offset) {
-  var version = org.jstype.read32(data, offset);
-  if (version != 0x00010000) {
-    return;
+org.jstype.GsubTable.readLookupRecords_ = function(data, offset) {
+  offset += org.jstype.read16(data, offset + 8);
+  var records = [];
+  var recordCount = org.jstype.read16(data, offset);
+  var recordOffset = offset;
+  for (var i = 0; i < recordCount; ++i) {
+    recordOffset += 2;
+    records.push(offset + org.jstype.read16(data, recordOffset));
   }
-  var scriptOffset = offset + org.jstype.read16(data, offset + 4);
-  var featureOffset = offset + org.jstype.read16(data, offset + 6);
-  var lookupOffset = offset + org.jstype.read16(data, offset + 8);
+  return records;
+};
 
-  var scriptList = new org.jstype.GsubTable.ScriptList(data, scriptOffset);
-  var featureList = new org.jstype.GsubTable.FeatureList(data, featureOffset);
-  var lookupList = new org.jstype.GsubTable.LookupList(data, lookupOffset);
+/**
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @param {string} tag
+ * @constructor
+ */
+org.jstype.GsubTable.FeatureRecord = function(data, offset, tag) {
+  /**
+   * @const {string}
+   */
+  this.tag = tag;
 
-  var arabScript = scriptList.getRecord('arab');
-  if (!arabScript) {
-    return;
+  /**
+   * @const {number}
+   */
+  this.featureParams = org.jstype.read16(data, offset);
+
+  /**
+   * @const {number}
+   */
+  var lookupCount = org.jstype.read16(data, offset + 2);
+
+  /**
+   * @const {Array.<number>}
+   */
+  this.lookupIndices = org.jstype.readArray16(data, offset + 4, lookupCount);
+};
+
+/**
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @return {Array.<org.jstype.GsubTable.FeatureRecord>}
+ * @private
+ */
+org.jstype.GsubTable.readFeatureRecords_ = function(data, offset) {
+  offset += org.jstype.read16(data, offset + 6);
+  var records = [];
+  var recordCount = org.jstype.read16(data, offset);
+  var recordOffset = offset + 2;
+  for (var i = 0; i < recordCount; ++i) {
+    var featureTag = org.jstype.readTag(data, recordOffset);
+    var featureOffset = offset + org.jstype.read16(data, recordOffset + 4);
+    recordOffset += 6;
+    records.push(new org.jstype.GsubTable.FeatureRecord(data,
+                                                        featureOffset,
+                                                        featureTag));
   }
-  var arabicCodeMap = [
-    null, null, null, null
-  ];
-  var featureCount = arabScript.featureIndices.length;
-  for (var i = 0; i < featureCount; ++i) {
-    var featureIndex = arabScript.featureIndices[i];
-    var featureTag = featureList.records[featureIndex].tag;
-    if (featureTag == 'fina') {
-      arabicCodeMap[0] = org.jstype.CodeMap.createMap_(0);
-    } else if (featureTag == 'init') {
-      arabicCodeMap[1] = org.jstype.CodeMap.createMap_(0);
-    } else if (featureTag == 'medi') {
-      arabicCodeMap[2] = org.jstype.CodeMap.createMap_(0);
-    } else if (featureTag == 'isol') {
-      arabicCodeMap[3] = org.jstype.CodeMap.createMap_(0);
+  return records;
+};
+
+/**
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @param {string} tag
+ * @param {string} language
+ * @constructor
+ */
+org.jstype.GsubTable.ScriptRecord = function(data, offset, tag, language) {
+  /**
+   * @const {string}
+   */
+  this.tag = tag;
+
+  /**
+   * @const {string}
+   */
+  this.language = language;
+
+  /**
+   * @const {number}
+   */
+  this.lookupOrder = org.jstype.read16(data, offset);
+
+  /**
+   * @const {number}
+   */
+  this.reqFeatureIndex = org.jstype.read16(data, offset + 2);
+
+  /**
+   * @const {number}
+   */
+  var featureCount = org.jstype.read16(data, offset + 4);
+
+  /**
+   * @const {Array.<number>}
+   */
+  this.featureIndices = org.jstype.readArray16(data, offset + 6, featureCount);
+};
+
+/**
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @return {Array.<org.jstype.GsubTable.ScriptRecord>}
+ * @private
+ */
+org.jstype.GsubTable.readScriptRecords_ = function(data, offset) {
+  offset += org.jstype.read16(data, offset + 4);
+  var records = [];
+  var recordCount = org.jstype.read16(data, offset);
+  var recordOffset = offset + 2;
+  for (var i = 0; i < recordCount; ++i) {
+    var scriptTag = org.jstype.readTag(data, recordOffset);
+    var scriptOffset = offset + org.jstype.read16(data, recordOffset + 4);
+    recordOffset += 6;
+
+    var langSysOffset = scriptOffset + org.jstype.read16(data, scriptOffset);
+    records.push(new org.jstype.GsubTable.ScriptRecord(data,
+                                                       langSysOffset,
+                                                       scriptTag,
+                                                       ''));
+
+    var featureCount = org.jstype.read16(data, scriptOffset + 2);
+    var featureOffset = scriptOffset + 4;
+    for (var j = 0; j < featureCount; ++j) {
+      var langTag = org.jstype.readTag(data, featureOffset);
+      var langOffset = scriptOffset + org.jstype.read16(data,
+                                                        featureOffset + 4);
+      featureOffset += 6;
+      records.push(new org.jstype.GsubTable.ScriptRecord(data,
+                                                         langOffset,
+                                                         scriptTag,
+                                                         langTag));
     }
   }
+  return records;
 };
 
 /**
@@ -970,12 +1448,12 @@ org.jstype.GsubTable.LookupRecord = function(data, offset) {
   /**
    * @const {number}
    */
-  this.lookupType = org.jstype.read16(data, offset);
+  var lookupType = org.jstype.read16(data, offset);
 
   /**
    * @const {number}
    */
-  this.lookupFlag = org.jstype.read16(data, offset + 2);
+  var lookupFlag = org.jstype.read16(data, offset + 2);
 
   /**
    * @const {number}
@@ -985,7 +1463,11 @@ org.jstype.GsubTable.LookupRecord = function(data, offset) {
   /**
    * @const {Object.<number,number>}
    */
-  this.subTables = org.jstype.GsubTable.LookupRecord.readSubTables_(data, offset, subTableCount, this.lookupType);
+  this.subTables = org.jstype.GsubTable.LookupRecord.readSubtables_(
+      data,
+      offset,
+      subTableCount,
+      lookupType);
 };
 
 /**
@@ -1070,7 +1552,7 @@ org.jstype.GsubTable.LookupRecord.getDelegate_ = function(data, offset, type) {
  * @return {Object.<number,number>}
  * @private
  */
-org.jstype.GsubTable.LookupRecord.readSubTables_ = function(data,
+org.jstype.GsubTable.LookupRecord.readSubtables_ = function(data,
                                                             offset,
                                                             count,
                                                             type) {
@@ -1081,15 +1563,16 @@ org.jstype.GsubTable.LookupRecord.readSubTables_ = function(data,
   var recordOffset = offset + 6;
   for (var i = 0; i < count; ++i) {
     // memo: 3 -> 0xb9f30, 7 -> 0xba1e6, 9 -> 0xba21e,...
-    var subTableOffset = offset + org.jstype.read16(data, recordOffset);
+    var tableOffset = offset + org.jstype.read16(data, recordOffset);
     recordOffset += 2;
 
-    // Read this substitution sub-table and create a delegate that substitutes
-    // glyphs IDs.
-    var delegate = org.jstype.GsubTable.LookupRecord.getDelegate_(data, subTableOffset, type);
-    var coverageOffset = subTableOffset + org.jstype.read16(data, subTableOffset + 2);
+    // Read this sub-table and create a delegate that substitutes glyphs IDs.
+    var delegate =
+        org.jstype.GsubTable.LookupRecord.getDelegate_(data, tableOffset, type);
 
-    // Read the coverage table and create a glyph-substitution table.
+    // Read the coverage table and create a mapping from a glyph to its
+    // alternative.
+    var coverageOffset = tableOffset + org.jstype.read16(data, tableOffset + 2);
     var coverageFormat = org.jstype.read16(data, coverageOffset);
     var coverageCount = org.jstype.read16(data, coverageOffset + 2);
     coverageOffset += 4;
@@ -1114,193 +1597,6 @@ org.jstype.GsubTable.LookupRecord.readSubTables_ = function(data,
 };
 
 /**
- * @param {Uint8Array} data
- * @param {number} offset
- * @constructor
- */
-org.jstype.GsubTable.LookupList = function(data, offset) {
-  /**
-   * @const {Array.<org.jstype.GsubTable.FeatureRecord>}
-   */
-  this.records = org.jstype.GsubTable.LookupList.readRecords_(data, offset);
-};
-
-/**
- * @param {Uint8Array} data
- * @param {number} offset
- * @return {Array.<org.jstype.GsubTable.FeatureRecord>}
- * @private
- */
-org.jstype.GsubTable.LookupList.readRecords_ = function(data, offset) {
-  var records = [];
-  var recordCount = org.jstype.read16(data, offset);
-  var recordOffset = offset + 2;
-  for (var i = 0; i < recordCount; ++i) {
-    var lookupOffset = offset + org.jstype.read16(data, recordOffset);
-    recordOffset += 2;
-    records.push(new org.jstype.GsubTable.LookupRecord(data, lookupOffset));
-  }
-  return records;
-};
-
-/**
- * @param {Uint8Array} data
- * @param {number} offset
- * @param {string} tag
- * @constructor
- */
-org.jstype.GsubTable.FeatureRecord = function(data, offset, tag) {
-  /**
-   * @const {string}
-   */
-  this.tag = tag;
-
-  /**
-   * @const {number}
-   */
-  this.featureParams = org.jstype.read16(data, offset);
-
-  /**
-   * @const {number}
-   */
-  var lookupCount = org.jstype.read16(data, offset + 2);
-
-  /**
-   * @const {Array.<number>}
-   */
-  this.lookupIndices = org.jstype.readArray16(data, offset + 4, lookupCount);
-};
-
-/**
- * @param {Uint8Array} data
- * @param {number} offset
- * @constructor
- */
-org.jstype.GsubTable.FeatureList = function(data, offset) {
-  /**
-   * @const {Array.<org.jstype.GsubTable.FeatureRecord>}
-   */
-  this.records = org.jstype.GsubTable.FeatureList.readRecords_(data, offset);
-};
-
-/**
- * @param {Uint8Array} data
- * @param {number} offset
- * @return {Array.<org.jstype.GsubTable.FeatureRecord>}
- * @private
- */
-org.jstype.GsubTable.FeatureList.readRecords_ = function(data, offset) {
-  var records = [];
-  var recordCount = org.jstype.read16(data, offset);
-  var recordOffset = offset + 2;
-  for (var i = 0; i < recordCount; ++i) {
-    var featureTag = org.jstype.readTag(data, recordOffset);
-    var featureOffset = offset + org.jstype.read16(data, recordOffset + 4);
-    recordOffset += 6;
-    records.push(new org.jstype.GsubTable.FeatureRecord(data,
-                                                        featureOffset,
-                                                        featureTag));
-  }
-  return records;
-};
-
-/**
- * @param {Uint8Array} data
- * @param {number} offset
- * @param {string} tag
- * @constructor
- */
-org.jstype.GsubTable.LangSysRecord = function(data, offset, tag) {
-  /**
-   * @const {string}
-   */
-  this.tag = tag;
-
-  /**
-   * @const {number}
-   */
-  this.lookupOrder = org.jstype.read16(data, offset);
-
-  /**
-   * @const {number}
-   */
-  this.reqFeatureIndex = org.jstype.read16(data, offset + 2);
-
-  /**
-   * @const {number}
-   */
-  var featureCount = org.jstype.read16(data, offset + 4);
-
-  /**
-   * @const {Array.<number>}
-   */
-  this.featureIndices = org.jstype.readArray16(data, offset + 6, featureCount);
-};
-
-/**
- * @param {Uint8Array} data
- * @param {number} offset
- * @constructor
- */
-org.jstype.GsubTable.ScriptList = function(data, offset) {
-  /**
-   * @const {Array.<org.jstype.GsubTable.LangSysRecord>}
-   * @private
-   */
-  this.records_ = org.jstype.GsubTable.ScriptList.readRecords_(data, offset);
-};
-
-/**
- * @param {Uint8Array} data
- * @param {number} offset
- * @return {Array.<org.jstype.GsubTable.LangSysRecord>}
- * @private
- */
-org.jstype.GsubTable.ScriptList.readRecords_ = function(data, offset) {
-  var records = [];
-  var recordCount = org.jstype.read16(data, offset);
-  var recordOffset = offset + 2;
-  for (var i = 0; i < recordCount; ++i) {
-    var scriptTag = org.jstype.readTag(data, recordOffset);
-    var scriptOffset = offset + org.jstype.read16(data, recordOffset + 4);
-    recordOffset += 6;
-
-    var langSysOffset = scriptOffset + org.jstype.read16(data, scriptOffset);
-    records.push(new org.jstype.GsubTable.LangSysRecord(data,
-                                                        langSysOffset,
-                                                        scriptTag));
-
-    var featureCount = org.jstype.read16(data, scriptOffset + 2);
-    var featureOffset = scriptOffset + 4;
-    for (var j = 0; j < featureCount; ++j) {
-      var langTag = org.jstype.readTag(data, featureOffset);
-      var langOffset = scriptOffset + org.jstype.read16(data,
-                                                        featureOffset + 4);
-      featureOffset += 6;
-      records.push(new org.jstype.GsubTable.LangSysRecord(data,
-                                                          langOffset,
-                                                          langTag));
-    }
-  }
-  return records;
-};
-
-/**
- * @param {string} tag
- * @return {org.jstype.GsubTable.LangSysRecord}
- */
-org.jstype.GsubTable.ScriptList.prototype.getRecord = function(tag) {
-  var length = this.records_.length;
-  for (var i = 0; i < length; ++i) {
-    var record = this.records_[i];
-    if (record.tag == tag) {
-      return record;
-    }
-  }
-  return null;
-};
-
-/**
  * A class encapsulating a bitmap used for writing font glyphs.
  * @param {Uint8Array} data
  * @param {number} width
@@ -1309,7 +1605,7 @@ org.jstype.GsubTable.ScriptList.prototype.getRecord = function(tag) {
  */
 org.jstype.Bitmap = function(data, width, height) {
   /**
-   * @const {Uint8Array}
+   * @type {Uint8Array}
    * @private
    */
   this.data_ = data;
@@ -1318,7 +1614,7 @@ org.jstype.Bitmap = function(data, width, height) {
    * @const {number}
    * @private
    */
-  this.lineSize_ = (width + 7) >> 3;
+  this.lineSize_ = width >> 3;
 
   /**
    * @const {number}
@@ -1835,8 +2131,8 @@ org.jstype.Scan.prototype.writeBitmap = function(bitmap, x, y) {
 };
 
 /**
- * A class representing a font glyph of an OpenType font, which consists of a
- * bounding box and a set of contours.
+ * An interface that provides functions that render a font glyph and return its
+ * metrics.
  * @interface
  */
 org.jstype.GlyphModel = function() {
@@ -1855,14 +2151,29 @@ org.jstype.GlyphModel.prototype.draw = function(scale, bitmap, x, y, frame) {
 };
 
 /**
- * Returns the horizontal width of this glyph.
+ * Returns the horizontal advance of this glyph.
  * @return {number}
  */
-org.jstype.GlyphModel.prototype.measure = function() {
+org.jstype.GlyphModel.prototype.getAdvance = function() {
 };
 
 /**
- * A class representing a font glyph of a space character.
+ * Returns the width of this glyph.
+ * @return {number}
+ */
+org.jstype.GlyphModel.prototype.getWidth = function() {
+};
+
+/**
+ * Returns the height of this glyph.
+ * @return {number}
+ */
+org.jstype.GlyphModel.prototype.getHeight = function() {
+};
+
+/**
+ * A class representing a font glyph of a space character. A space character
+ * does not have contours and it needs special code.
  * @param {number} xMin
  * @param {number} yMin
  * @param {number} xMax
@@ -1871,6 +2182,18 @@ org.jstype.GlyphModel.prototype.measure = function() {
  * @constructor
  */
 org.jstype.SpaceGlyph = function(xMin, yMin, xMax, yMax) {
+  /**
+   * @const {number}
+   * @private
+   */
+  this.width_ = xMax - xMin;
+
+  /**
+   * @const {number}
+   * @private
+   */
+  this.height_ = yMax - yMin;
+
   /**
    * @const {number}
    * @private
@@ -1902,8 +2225,18 @@ org.jstype.SpaceGlyph.prototype.draw = function(scale, bitmap, x, y, frame) {
 };
 
 /** @override */
-org.jstype.SpaceGlyph.prototype.measure = function() {
+org.jstype.SpaceGlyph.prototype.getAdvance = function() {
   return this.xMax_;
+};
+
+/** @override */
+org.jstype.SpaceGlyph.prototype.getWidth = function() {
+  return this.width_;
+};
+
+/** @override */
+org.jstype.SpaceGlyph.prototype.getHeight = function() {
+  return this.height_;
 };
 
 /**
@@ -1919,6 +2252,18 @@ org.jstype.Glyph = function(code) {
    * @const {number}
    */
   this.code = code;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.width_ = 0;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.height_ = 0;
 
   /**
    * @type {number}
@@ -2011,6 +2356,8 @@ org.jstype.Glyph.prototype.loadCompositeGlyph_ = function(data,
   this.yMin_ = org.jstype.read16s(data, offset + 4);
   this.xMax_ = org.jstype.read16s(data, offset + 6);
   this.yMax_ = org.jstype.read16s(data, offset + 8);
+  this.width_ = this.xMax_ - this.xMin_;
+  this.height_ = this.yMax_ - this.yMin_;
   return true;
 };
 
@@ -2033,6 +2380,8 @@ org.jstype.Glyph.prototype.loadGlyph = function(data, offset, dx, dy, cmap) {
   this.yMin_ = org.jstype.read16s(data, offset + 4);
   this.xMax_ = org.jstype.read16s(data, offset + 6);
   this.yMax_ = org.jstype.read16s(data, offset + 8);
+  this.width_ = this.xMax_ - this.xMin_;
+  this.height_ = this.yMax_ - this.yMin_;
   offset += 10;
 
   var endPointsOfContour = [];
@@ -2148,14 +2497,24 @@ org.jstype.Glyph.prototype.draw = function(scale, bitmap, x, y, frame) {
     }
     this.scan_ = scan;
   }
-  this.scan_.writeBitmap(bitmap, x, y);
+  this.scan_.writeBitmap(bitmap, x, org.jstype.round(y));
   this.frame_ = frame;
   return this.xMax_ * scale;
 };
 
 /** @override */
-org.jstype.Glyph.prototype.measure = function() {
+org.jstype.Glyph.prototype.getAdvance = function() {
   return this.xMax_;
+};
+
+/** @override */
+org.jstype.Glyph.prototype.getWidth = function() {
+  return this.width_;
+};
+
+/** @override */
+org.jstype.Glyph.prototype.getHeight = function() {
+  return this.height_;
 };
 
 /**
@@ -2178,16 +2537,16 @@ org.jstype.Glyph.sort = function(a, b) {
  * contextual forms and replaces ligatures with their presentation forms to
  * prevent the font renderer from substituting glyphs.
  * @param {string} text
- * @param {number} direction
+ * @param {?org.jstype.CharacterIterator.CodeRewriter} rewriter
  * @constructor
  */
-org.jstype.CharacterIterator = function(text, direction) {
+org.jstype.CharacterIterator = function(text, rewriter) {
   /**
    * Unicode code-points sorted in the visual order.
    * @const {Array.<number>}
    * @private
    */
-  this.text_ = org.jstype.CharacterIterator.getVisualText_(text, direction);
+  this.text_ = org.jstype.CharacterIterator.getVisualText_(text, rewriter);
 
   /**
    * The length of this visual text. This variable is for compatibility
@@ -2198,221 +2557,230 @@ org.jstype.CharacterIterator = function(text, direction) {
 };
 
 /**
- * A ligature used by the CharacterIterator class to create a visual run.
- * @param {number} code
- * @param {number} length
- * @constructor
+ * An interface that replaces a character to another.
+ * @interface
  */
-org.jstype.CharacterIterator.Ligature = function(code, length) {
-  /**
-   * @const {number}
-   */
-  this.code = code;
-
-  /**
-   * @const {number}
-   */
-  this.length = length;
+org.jstype.CharacterIterator.CodeRewriter = function() {
 };
 
 /**
- * Character codes representing the contextual forms of Arabic scripts. An
- * Arabic character has up to four contextual forms (initial, medial, final, and
- * isolated) and Unicode assigns one code for each form. This table provides a
- * mapping from Arabic scripts (U+0600...U+06FF) to their contextual forms.
- * @enum {Array.<number>}
- * @const
+ * Returns an alternative character.
+ * @param {number} code
+ * @return {number}
  */
-org.jstype.CharacterIterator.ArabicForms = {
-  INIT: [
-    0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x0606, 0x0607,
-    0x0608, 0x0609, 0x060a, 0x060b, 0x060c, 0x060d, 0x060e, 0x060f,
-    0x0610, 0x0611, 0x0612, 0x0613, 0x0614, 0x0615, 0x0616, 0x0617,
-    0x0618, 0x0619, 0x061a, 0x061b, 0x061c, 0x061d, 0x061e, 0x061f,
-    0x0620, 0x0621, 0x0622, 0x0623, 0x0624, 0x0625, 0xfe8b, 0x0627,
-    0xfe91, 0x0629, 0xfe97, 0xfe9b, 0xfe9f, 0xfea3, 0xfea7, 0x062f,
-    0x0630, 0x0631, 0x0632, 0xfeb3, 0xfeb7, 0xfebb, 0xfebf, 0xfec3,
-    0xfec7, 0xfecb, 0xfecf, 0x063b, 0x063c, 0x063d, 0x063e, 0x063f,
-    0x0640, 0xfed3, 0xfed7, 0xfedb, 0xfedf, 0xfee3, 0xfee7, 0xfeeb,
-    0x0648, 0x0649, 0xfef3, 0x064b, 0x064c, 0x064d, 0x064e, 0x064f,
-    0x0650, 0x0651, 0x0652, 0x0653, 0x0654, 0x0655, 0x0656, 0x0657,
-    0x0658, 0x0659, 0x065a, 0x065b, 0x065c, 0x065d, 0x065e, 0x065f,
-    0x0660, 0x0661, 0x0662, 0x0663, 0x0664, 0x0665, 0x0666, 0x0667,
-    0x0668, 0x0669, 0x066a, 0x066b, 0x066c, 0x066d, 0x066e, 0x066f,
-    0x0670, 0x0671, 0x0672, 0x0673, 0x0674, 0x0675, 0x0676, 0x0677,
-    0x0678, 0xfb68, 0xfb60, 0xfb54, 0x067c, 0x067d, 0xfb58, 0xfb64,
-    0xfb5c, 0x0681, 0x0682, 0xfb78, 0xfb74, 0x0685, 0xfb7c, 0xfb80,
-    0x0688, 0x0689, 0x068a, 0x068b, 0x068c, 0x068d, 0x068e, 0x068f,
-    0x0690, 0x0691, 0x0692, 0x0693, 0x0694, 0x0695, 0x0696, 0x0697,
-    0x0698, 0x0699, 0x069a, 0x069b, 0x069c, 0x069d, 0x069e, 0x069f,
-    0x06a0, 0x06a1, 0x06a2, 0x06a3, 0xfb6c, 0x06a5, 0xfb70, 0x06a7,
-    0x06a8, 0xfb90, 0x06aa, 0x06ab, 0x06ac, 0xfbd5, 0x06ae, 0xfb94,
-    0x06b0, 0xfb9c, 0x06b2, 0xfb98, 0x06b4, 0x06b5, 0x06b6, 0x06b7,
-    0x06b8, 0x06b9, 0x06ba, 0xfba2, 0x06bc, 0x06bd, 0xfbac, 0x06bf,
-    0x06c0, 0xfba8, 0x06c2, 0x06c3, 0x06c4, 0x06c5, 0x06c6, 0x06c7,
-    0x06c8, 0x06c9, 0x06ca, 0x06cb, 0xfbfe, 0x06cd, 0x06ce, 0x06cf,
-    0xfbe6, 0x06d1, 0x06d2, 0x06d3, 0x06d4, 0x06d5, 0x06d6, 0x06d7,
-    0x06d8, 0x06d9, 0x06da, 0x06db, 0x06dc, 0x06dd, 0x06de, 0x06df,
-    0x06e0, 0x06e1, 0x06e2, 0x06e3, 0x06e4, 0x06e5, 0x06e6, 0x06e7,
-    0x06e8, 0x06e9, 0x06ea, 0x06eb, 0x06ec, 0x06ed, 0x06ee, 0x06ef,
-    0x06f0, 0x06f1, 0x06f2, 0x06f3, 0x06f4, 0x06f5, 0x06f6, 0x06f7,
-    0x06f8, 0x06f9, 0x06fa, 0x06fb, 0x06fc, 0x06fd, 0x06fe, 0x06ff
-  ],
-  MEDI: [
-    0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x0606, 0x0607,
-    0x0608, 0x0609, 0x060a, 0x060b, 0x060c, 0x060d, 0x060e, 0x060f,
-    0x0610, 0x0611, 0x0612, 0x0613, 0x0614, 0x0615, 0x0616, 0x0617,
-    0x0618, 0x0619, 0x061a, 0x061b, 0x061c, 0x061d, 0x061e, 0x061f,
-    0x0620, 0x0621, 0x0622, 0x0623, 0x0624, 0x0625, 0xfe8c, 0x0627,
-    0xfe92, 0x0629, 0xfe98, 0xfe9c, 0xfea0, 0xfea4, 0xfea8, 0x062f,
-    0x0630, 0x0631, 0x0632, 0xfeb4, 0xfeb8, 0xfebc, 0xfec0, 0xfec4,
-    0xfec8, 0xfecc, 0xfed0, 0x063b, 0x063c, 0x063d, 0x063e, 0x063f,
-    0x0640, 0xfed4, 0xfed8, 0xfedc, 0xfee0, 0xfee4, 0xfee8, 0xfeec,
-    0x0648, 0x0649, 0xfef4, 0x064b, 0x064c, 0x064d, 0x064e, 0x064f,
-    0x0650, 0x0651, 0x0652, 0x0653, 0x0654, 0x0655, 0x0656, 0x0657,
-    0x0658, 0x0659, 0x065a, 0x065b, 0x065c, 0x065d, 0x065e, 0x065f,
-    0x0660, 0x0661, 0x0662, 0x0663, 0x0664, 0x0665, 0x0666, 0x0667,
-    0x0668, 0x0669, 0x066a, 0x066b, 0x066c, 0x066d, 0x066e, 0x066f,
-    0x0670, 0x0671, 0x0672, 0x0673, 0x0674, 0x0675, 0x0676, 0x0677,
-    0x0678, 0xfb69, 0xfb61, 0xfb55, 0x067c, 0x067d, 0xfb59, 0xfb65,
-    0xfb5d, 0x0681, 0x0682, 0xfb79, 0xfb75, 0x0685, 0xfb7d, 0xfb81,
-    0x0688, 0x0689, 0x068a, 0x068b, 0x068c, 0x068d, 0x068e, 0x068f,
-    0x0690, 0x0691, 0x0692, 0x0693, 0x0694, 0x0695, 0x0696, 0x0697,
-    0x0698, 0x0699, 0x069a, 0x069b, 0x069c, 0x069d, 0x069e, 0x069f,
-    0x06a0, 0x06a1, 0x06a2, 0x06a3, 0xfb6d, 0x06a5, 0xfb71, 0x06a7,
-    0x06a8, 0xfb91, 0x06aa, 0x06ab, 0x06ac, 0xfbd6, 0x06ae, 0xfb95,
-    0x06b0, 0xfb9d, 0x06b2, 0xfb99, 0x06b4, 0x06b5, 0x06b6, 0x06b7,
-    0x06b8, 0x06b9, 0x06ba, 0xfba3, 0x06bc, 0x06bd, 0xfbad, 0x06bf,
-    0x06c0, 0xfba9, 0x06c2, 0x06c3, 0x06c4, 0x06c5, 0x06c6, 0x06c7,
-    0x06c8, 0x06c9, 0x06ca, 0x06cb, 0xfbff, 0x06cd, 0x06ce, 0x06cf,
-    0xfbe7, 0x06d1, 0x06d2, 0x06d3, 0x06d4, 0x06d5, 0x06d6, 0x06d7,
-    0x06d8, 0x06d9, 0x06da, 0x06db, 0x06dc, 0x06dd, 0x06de, 0x06df,
-    0x06e0, 0x06e1, 0x06e2, 0x06e3, 0x06e4, 0x06e5, 0x06e6, 0x06e7,
-    0x06e8, 0x06e9, 0x06ea, 0x06eb, 0x06ec, 0x06ed, 0x06ee, 0x06ef,
-    0x06f0, 0x06f1, 0x06f2, 0x06f3, 0x06f4, 0x06f5, 0x06f6, 0x06f7,
-    0x06f8, 0x06f9, 0x06fa, 0x06fb, 0x06fc, 0x06fd, 0x06fe, 0x06ff
-  ],
-  FINA: [
-    0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x0606, 0x0607,
-    0x0608, 0x0609, 0x060a, 0x060b, 0x060c, 0x060d, 0x060e, 0x060f,
-    0x0610, 0x0611, 0x0612, 0x0613, 0x0614, 0x0615, 0x0616, 0x0617,
-    0x0618, 0x0619, 0x061a, 0x061b, 0x061c, 0x061d, 0x061e, 0x061f,
-    0x0620, 0x0621, 0xfe82, 0xfe84, 0xfe86, 0xfe88, 0xfe8a, 0xfe8e,
-    0xfe90, 0xfe94, 0xfe96, 0xfe9a, 0xfe9e, 0xfea2, 0xfea6, 0xfeaa,
-    0xfeac, 0xfeae, 0xfeb0, 0xfeb2, 0xfeb6, 0xfeba, 0xfebe, 0xfec2,
-    0xfec6, 0xfeca, 0xfece, 0x063b, 0x063c, 0x063d, 0x063e, 0x063f,
-    0x0640, 0xfed2, 0xfed6, 0xfeda, 0xfede, 0xfee2, 0xfee6, 0xfeea,
-    0xfeee, 0xfef0, 0xfef2, 0x064b, 0x064c, 0x064d, 0x064e, 0x064f,
-    0x0650, 0x0651, 0x0652, 0x0653, 0x0654, 0x0655, 0x0656, 0x0657,
-    0x0658, 0x0659, 0x065a, 0x065b, 0x065c, 0x065d, 0x065e, 0x065f,
-    0x0660, 0x0661, 0x0662, 0x0663, 0x0664, 0x0665, 0x0666, 0x0667,
-    0x0668, 0x0669, 0x066a, 0x066b, 0x066c, 0x066d, 0x066e, 0x066f,
-    0x0670, 0xfb51, 0x0672, 0x0673, 0x0674, 0x0675, 0x0676, 0x0677,
-    0x0678, 0xfb67, 0xfb5f, 0xfb53, 0x067c, 0x067d, 0xfb57, 0xfb63,
-    0xfb5b, 0x0681, 0x0682, 0xfb77, 0xfb73, 0x0685, 0xfb7b, 0xfb7f,
-    0xfb89, 0x0689, 0x068a, 0x068b, 0xfb85, 0xfb83, 0xfb87, 0x068f,
-    0x0690, 0xfb8d, 0x0692, 0x0693, 0x0694, 0x0695, 0x0696, 0x0697,
-    0xfb8b, 0x0699, 0x069a, 0x069b, 0x069c, 0x069d, 0x069e, 0x069f,
-    0x06a0, 0x06a1, 0x06a2, 0x06a3, 0xfb6b, 0x06a5, 0xfb6f, 0x06a7,
-    0x06a8, 0xfb8f, 0x06aa, 0x06ab, 0x06ac, 0xfbd4, 0x06ae, 0xfb93,
-    0x06b0, 0xfb9b, 0x06b2, 0xfb97, 0x06b4, 0x06b5, 0x06b6, 0x06b7,
-    0x06b8, 0x06b9, 0xfb9f, 0xfba1, 0x06bc, 0x06bd, 0xfbab, 0x06bf,
-    0xfba5, 0xfba7, 0x06c2, 0x06c3, 0x06c4, 0xfbe1, 0xfbda, 0xfbd8,
-    0xfbdc, 0xfbe3, 0x06ca, 0xfbdf, 0xfbfd, 0x06cd, 0x06ce, 0x06cf,
-    0xfbe5, 0x06d1, 0xfbaf, 0xfbb1, 0x06d4, 0x06d5, 0x06d6, 0x06d7,
-    0x06d8, 0x06d9, 0x06da, 0x06db, 0x06dc, 0x06dd, 0x06de, 0x06df,
-    0x06e0, 0x06e1, 0x06e2, 0x06e3, 0x06e4, 0x06e5, 0x06e6, 0x06e7,
-    0x06e8, 0x06e9, 0x06ea, 0x06eb, 0x06ec, 0x06ed, 0x06ee, 0x06ef,
-    0x06f0, 0x06f1, 0x06f2, 0x06f3, 0x06f4, 0x06f5, 0x06f6, 0x06f7,
-    0x06f8, 0x06f9, 0x06fa, 0x06fb, 0x06fc, 0x06fd, 0x06fe, 0x06ff
-  ],
-  ISOL: [
-    0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x0606, 0x0607,
-    0x0608, 0x0609, 0x060a, 0x060b, 0x060c, 0x060d, 0x060e, 0x060f,
-    0x0610, 0x0611, 0x0612, 0x0613, 0x0614, 0x0615, 0x0616, 0x0617,
-    0x0618, 0x0619, 0x061a, 0x061b, 0x061c, 0x061d, 0x061e, 0x061f,
-    0x0620, 0xfe80, 0xfe81, 0xfe83, 0xfe85, 0xfe87, 0xfe89, 0xfe8d,
-    0xfe8f, 0xfe93, 0xfe95, 0xfe99, 0xfe9d, 0xfea1, 0xfea5, 0xfea9,
-    0xfeab, 0xfead, 0xfeaf, 0xfeb1, 0xfeb5, 0xfeb9, 0xfebd, 0xfec1,
-    0xfec5, 0xfec9, 0xfecd, 0x063b, 0x063c, 0x063d, 0x063e, 0x063f,
-    0x0640, 0xfed1, 0xfed5, 0xfed9, 0xfedd, 0xfee1, 0xfee5, 0xfee9,
-    0xfeed, 0xfeef, 0xfef1, 0x064b, 0x064c, 0x064d, 0x064e, 0x064f,
-    0x0650, 0x0651, 0x0652, 0x0653, 0x0654, 0x0655, 0x0656, 0x0657,
-    0x0658, 0x0659, 0x065a, 0x065b, 0x065c, 0x065d, 0x065e, 0x065f,
-    0x0660, 0x0661, 0x0662, 0x0663, 0x0664, 0x0665, 0x0666, 0x0667,
-    0x0668, 0x0669, 0x066a, 0x066b, 0x066c, 0x066d, 0x066e, 0x066f,
-    0x0670, 0xfb50, 0x0672, 0x0673, 0x0674, 0x0675, 0x0676, 0xfbdd,
-    0xfbdd, 0xfb66, 0xfb5e, 0xfb52, 0xfbdd, 0xfbdd, 0xfb56, 0xfb62,
-    0xfb5a, 0xfbdd, 0xfbdd, 0xfb76, 0xfb72, 0xfbdd, 0xfb7a, 0xfb7e,
-    0xfb88, 0x0689, 0x068a, 0x068b, 0xfb84, 0xfb82, 0xfb86, 0x068f,
-    0x0690, 0xfb8c, 0x0692, 0x0693, 0x0694, 0x0695, 0x0696, 0x0697,
-    0xfb8a, 0x0699, 0x069a, 0x069b, 0x069c, 0x069d, 0x069e, 0x069f,
-    0x06a0, 0x06a1, 0x06a2, 0x06a3, 0xfb6a, 0x06a5, 0xfb6e, 0x06a7,
-    0x06a8, 0xfb8e, 0x06aa, 0x06ab, 0x06ac, 0xfbd3, 0x06ae, 0xfb92,
-    0x06b0, 0xfb9a, 0x06b2, 0xfb96, 0x06b4, 0x06b5, 0x06b6, 0x06b7,
-    0x06b8, 0x06b9, 0xfb9e, 0xfba0, 0x06bc, 0x06bd, 0xfbaa, 0x06bf,
-    0xfba4, 0xfba6, 0x06c2, 0x06c3, 0x06c4, 0xfbe0, 0xfbd9, 0xfbd7,
-    0xfbdb, 0xfbe2, 0x06ca, 0xfbde, 0xfbfc, 0x06cd, 0x06ce, 0x06cf,
-    0xfbe4, 0x06d1, 0xfbae, 0xfbb0, 0x06d4, 0x06d5, 0x06d6, 0x06d7,
-    0x06d8, 0x06d9, 0x06da, 0x06db, 0x06dc, 0x06dd, 0x06de, 0x06df,
-    0x06e0, 0x06e1, 0x06e2, 0x06e3, 0x06e4, 0x06e5, 0x06e6, 0x06e7,
-    0x06e8, 0x06e9, 0x06ea, 0x06eb, 0x06ec, 0x06ed, 0x06ee, 0x06ef,
-    0x06f0, 0x06f1, 0x06f2, 0x06f3, 0x06f4, 0x06f5, 0x06f6, 0x06f7,
-    0x06f8, 0x06f9, 0x06fa, 0x06fb, 0x06fc, 0x06fd, 0x06fe, 0x06ff
-  ]
+org.jstype.CharacterIterator.CodeRewriter.prototype.getCode = function(code) {
+};
+
+/**
+ * A class that replaces a character to a presentation character used by
+ * vertical writing.
+ * @implements {org.jstype.CharacterIterator.CodeRewriter}
+ * @constructor
+ */
+org.jstype.CharacterIterator.VerticalCodeRewriter = function() {
+  /**
+   * @const {Object.<number,number>}
+   * @private
+   */
+  this.codeMap_ = org.jstype.CharacterIterator.VerticalCodeRewriter.getMap_();
+};
+
+/**
+ * Returns a mapping table from a character to its presentation character used
+ * in vertical text.
+ * @private
+ */
+org.jstype.CharacterIterator.VerticalCodeRewriter.getMap_ = function () {
+  var codeMap = {};
+  var length = org.jstype.JapaneseForms.VERT.length;
+  for (var i = 0; i < length; i += 2) {
+    codeMap[org.jstype.JapaneseForms.VERT[i + 1]] =
+        org.jstype.JapaneseForms.VERT[i];
+  }
+  return codeMap;
+};
+
+/** @override */
+org.jstype.CharacterIterator.VerticalCodeRewriter.prototype.getCode = function (code) {
+  return this.codeMap_[code] || code;
+};
+
+/**
+ * Retrieves a Latin ligature.
+ * @param {number} prefix
+ * @param {number} code
+ * @return {number}
+ * @private
+ */
+org.jstype.CharacterIterator.getLatinLigature_ = function(prefix, code) {
+  if (prefix == 0x0066) {
+    // LATIN SMALL LETTER F + LATIN SMALL LETTER F
+    // -> LATIN SMALL LIGATURE FF
+    if (code == 0x0066) {
+      return 0xFB00;
+    }
+    // LATIN SMALL LETTER F + LATIN SMALL LETTER I
+    // -> LATIN SMALL LIGATURE FI
+    if (code == 0x0069) {
+      return 0xFB01;
+    }
+    // LATIN SMALL LETTER F + LATIN SMALL LETTER L
+    // -> LATIN SMALL LIGATURE FL
+    if (code == 0x006C) {
+      return 0xFB02;
+    }
+  } else if (prefix == 0xFB00) {
+    // LATIN SMALL LIGATURE FF + LATIN SMALL LETTER I
+    // -> LATIN SMALL LIGATURE FFI
+    if (code == 0x0069) {
+      return 0xFB03;
+    }
+    // LATIN SMALL LIGATURE FF + LATIN SMALL LETTER L
+    // -> LATIN SMALL LIGATURE FFL
+    if (code == 0x006C) {
+      return 0xFB04;
+    }
+  }
+  return 0;
+};
+
+/**
+ * Creates the visual run of a Korean word.
+ * @param {Array.<number>} word
+ * @return {Array.<number>}
+ * @private
+ */
+org.jstype.CharacterIterator.getLatinRun_ = function(word) {
+  var length = word.length;
+  var run = [];
+  var prefix = 0;
+  for (var i = 0; i < length; ++i) {
+    var code = word[i];
+    var ligature = org.jstype.CharacterIterator.getLatinLigature_(prefix, code);
+    if (ligature) {
+      run[i - 1] = ligature;
+    } else {
+      run.push(code);
+    }
+    prefix = code;
+  }
+  return run;
+};
+
+/**
+ * Retrieves a Korean ligature.
+ * @param {number} prefix
+ * @param {number} code
+ * @return {number}
+ * @private
+ */
+org.jstype.CharacterIterator.getKoreanLigature_ = function(prefix, code) {
+  // Compose a Hangul vowel and consonants to a Hangul character. A Hangul
+  // character of Unicode is a ligature consisting of one Hangul vowel and
+  // two Hangul consonants. Each Hangul character is composed with the following
+  // formula:
+  //   character =  0xAC00 +
+  //                (first consonant - 0x1100) * 28 * 21 +
+  //                (vowel           - 0x1161) * 28 +
+  //                (last consonant  - 0x11A7);
+  // The above formula is copied from Unicode Standard Annex #15
+  // <http://unicode.org/reports/tr15>.
+  var L_BASE = 0x1100;
+  var V_BASE = 0x1161;
+  var T_BASE = 0x11A7;
+  var S_BASE = 0xAC00;
+  var L_COUNT = 19;
+  var V_COUNT = 21;
+  var T_COUNT = 28;
+  var S_COUNT = L_COUNT * V_COUNT * T_COUNT;
+  if (L_BASE <= prefix && prefix < L_BASE + L_COUNT) {
+    if (V_BASE <= code && code < V_BASE + V_COUNT) {
+      return S_BASE + (prefix - L_BASE) * V_COUNT * T_COUNT +
+          (code - V_BASE) * T_COUNT;
+    }
+  } else if (S_BASE <= prefix && prefix < S_BASE + S_COUNT) {
+    if ((prefix % T_COUNT) == 0 && T_BASE <= code && code < T_BASE + T_COUNT) {
+      return prefix + (code - T_BASE);
+    }
+  }
+  return 0;
+};
+
+/**
+ * Creates the visual run of a Korean word.
+ * @param {Array.<number>} word
+ * @return {Array.<number>}
+ * @private
+ */
+org.jstype.CharacterIterator.getKoreanRun_ = function(word) {
+  var length = word.length;
+  var run = [];
+  var prefix = 0;
+  for (var i = 0; i < length; ++i) {
+    var code = word[i];
+    var ligature = org.jstype.CharacterIterator.getKoreanLigature_(prefix, code);
+    if (ligature) {
+      run[i - 1] = ligature;
+    } else {
+      run.push(code);
+    }
+    prefix = code;
+  }
+  return run;
 };
 
 /**
  * Retrieves an Arabic ligature.
  * @param {number} prefix
  * @param {number} code
- * @return {org.jstype.CharacterIterator.Ligature}
+ * @return {number}
+ * @private
  */
 org.jstype.CharacterIterator.getArabicLigature_ = function(prefix, code) {
   if (prefix == 0xFEDF) {
     // ARABIC LETTER LAM INITIAL FORM + ARABIC LETTER ALEF WITH MADDA ABOVE
     // -> ARABIC LIGATURE LAM WITH ALEF WITH MADDA ABOVE ISOLATED FORM
     if (code == 0x0622) {
-      return new org.jstype.CharacterIterator.Ligature(0xFEF5, 1);
+      return 0xFEF5;
     }
     // ARABIC LETTER LAM INITIAL FORM + ARABIC LETTER ALEF WITH HAMZA ABOVE
     // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA ABOVE ISOLATED FORM
     if (code == 0x0623) {
-      return new org.jstype.CharacterIterator.Ligature(0xFEF7, 1);
+      return 0xFEF7;
     }
     // ARABIC LETTER LAM INITIAL FORM + ARABIC LETTER ALEF WITH HAMZA BELOW
     // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA BELOW ISOLATED FORM
     if (code == 0x0625) {
-      return new org.jstype.CharacterIterator.Ligature(0xFEF9, 1);
+      return 0xFEF9;
     }
     // ARABIC LETTER LAM INITIAL FORM + ARABIC LETTER ALEF
     // -> ARABIC LIGATURE LAM WITH ALEF ISOLATED FORM
     if (code == 0x0627) {
-      return new org.jstype.CharacterIterator.Ligature(0xFEFB, 1);
+      return 0xFEFB;
     }
   } else if (prefix == 0xFEE0) {
     // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF WITH MADDA ABOVE
     // -> ARABIC LIGATURE LAM WITH ALEF WITH MADDA ABOVE FINAL FORM
     if (code == 0x0622) {
-      return new org.jstype.CharacterIterator.Ligature(0xFEF6, 1);
+      return 0xFEF6;
     }
     // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF WITH HAMZA ABOVE
     // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA ABOVE FINAL FORM
     if (code == 0x0623) {
-      return new org.jstype.CharacterIterator.Ligature(0xFEF8, 1);
+      return 0xFEF8;
     }
     // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF WITH HAMZA BELOW
     // -> ARABIC LIGATURE LAM WITH ALEF WITH HAMZA BELOW FINAL FORM
     if (code == 0x0625) {
-      return new org.jstype.CharacterIterator.Ligature(0xFEFA, 1);
+      return 0xFEFA;
     }
     // ARABIC LETTER LAM MEDIAL FORM + ARABIC LETTER ALEF
     // -> ARABIC LIGATURE LAM WITH ALEF FINAL FORM
     if (code == 0x0627) {
-      return new org.jstype.CharacterIterator.Ligature(0xFEFC, 1);
+      return 0xFEFC;
     }
   }
-  return null;
+  return 0;
 };
 
 /**
@@ -2424,45 +2792,51 @@ org.jstype.CharacterIterator.getArabicLigature_ = function(prefix, code) {
 org.jstype.CharacterIterator.getArabicRun_ = function(word) {
   var length = word.length;
   if (length == 1) {
-    word[0] = org.jstype.CharacterIterator.ArabicForms.ISOL[word[0] & 0xff];
+    word[0] = org.jstype.ArabicForms.ISOL[word[0] & 0xff];
     return word;
   }
-  var visualWord = [];
-  var code = org.jstype.CharacterIterator.ArabicForms.INIT[word[0] & 0xff];
+  var run = [];
+  var code = org.jstype.ArabicForms.INIT[word[0] & 0xff];
   var prefix = code;
-  var ligature = null;
-  visualWord.push(code);
+  var ligature = 0;
+  run.push(code);
   --length;
   for (var i = 1; i < length; ++i) {
-    code = org.jstype.CharacterIterator.ArabicForms.MEDI[word[i] & 0xff];
+    code = org.jstype.ArabicForms.MEDI[word[i] & 0xff];
     ligature = org.jstype.CharacterIterator.getArabicLigature_(prefix, code);
     if (ligature) {
-      code = ligature.code;
-      visualWord.length -= ligature.length;
+      run[i - 1] = ligature;
+    } else {
+      run.push(code);
     }
-    visualWord.push(code);
     prefix = code;
   }
-  code = org.jstype.CharacterIterator.ArabicForms.FINA[word[length] & 0xff];
+  code = org.jstype.ArabicForms.FINA[word[length] & 0xff];
   ligature = org.jstype.CharacterIterator.getArabicLigature_(prefix, code);
   if (ligature) {
-    code = ligature.code;
-    visualWord.length -= ligature.length;
+    run[length - 1] = ligature;
+  } else {
+    run.push(code);
   }
-  visualWord.push(code);
-  visualWord.reverse();
-  return visualWord;
+  run.reverse();
+  return run;
 };
 
 /**
- * Script codes used by this iterator.
+ * Script codes used by the CharacterIterator object to create visual runs. The
+ * CharacterIterator object splits text into text segments of the same script
+ * code, and applies script-specific operations to the text segments, and
+ * concatenates them. (A positive number shows this script is an LTR script, a
+ * negative number shows this script is an RTL script, respectively.)
  * @enum {number}
  * @const
  */
 org.jstype.CharacterIterator.Script = {
+  KOREAN: 2,
+  LATIN: 1,
   NEUTRAL: 0,
-  ARABIC: 1,
-  HEBREW: 2
+  ARABIC: -1,
+  HEBREW: -2
 };
 
 /**
@@ -2471,40 +2845,20 @@ org.jstype.CharacterIterator.Script = {
  * @private
  */
 org.jstype.CharacterIterator.getScript_ = function (code) {
-  if (code < 0x0590) {
+  if (code <= 0x002F) {
     return org.jstype.CharacterIterator.Script.NEUTRAL;
+  } else if (code < 0x0590) {
+    return org.jstype.CharacterIterator.Script.LATIN;
   } else if (0x0590 <= code && code <= 0x5FF) {
     return org.jstype.CharacterIterator.Script.HEBREW;
   } else if (0x0600 <= code && code <= 0x06ff) {
     return org.jstype.CharacterIterator.Script.ARABIC;
-  } else if (0xfb1d <= code && code <= 0xfeff) {
+  } else if (0xfb1d <= code && code <= 0xfdfb) {
+    return org.jstype.CharacterIterator.Script.ARABIC;
+  } else if (0xfe70 <= code && code <= 0xfeff) {
     return org.jstype.CharacterIterator.Script.ARABIC;
   }
-  return org.jstype.CharacterIterator.Script.NEUTRAL;
-};
-
-/**
- * @param {Array.<number>} run
- * @param {number} offset
- * @param {Array.<Object>} ligatures
- * @return {number}
- */
-org.jstype.CharacterIterator.getLigature_ = function(run, offset, ligatures) {
-  var length = ligatures.length;
-  for (var i = 0; i < length; ++i) {
-    var ligature = ligatures[i];
-    var prefixIndex = ligature.prefix.length;
-    var runIndex = run.length;
-    while (prefixIndex > 0) {
-      if (run[--runIndex] != ligature.prefix[--prefixIndex]) {
-        break;
-      }
-    }
-    if (prefixIndex == 0) {
-      return i;
-    }
-  }
-  return -1;
+  return org.jstype.CharacterIterator.Script.LATIN;
 };
 
 /**
@@ -2519,7 +2873,7 @@ org.jstype.CharacterIterator.getLigature_ = function(run, offset, ligatures) {
  * @private
  */
 org.jstype.CharacterIterator.createRun_ = function(word, script) {
-  if (script == org.jstype.CharacterIterator.Script.NEUTRAL) {
+  if (script >= org.jstype.CharacterIterator.Script.NEUTRAL) {
     return word;
   }
   var length = word.length;
@@ -2535,15 +2889,16 @@ org.jstype.CharacterIterator.createRun_ = function(word, script) {
 /**
  * Creates the visual form of the specified text.
  * @param {string} text
- * @param {number} direction
+ * @param {?org.jstype.CharacterIterator.CodeRewriter} rewriter
  * @return {Array.<number>}
  * @private
  */
-org.jstype.CharacterIterator.getVisualText_ = function(text, direction) {
+org.jstype.CharacterIterator.getVisualText_ = function(text, rewriter) {
   var runs = [];
   var word = [];
   var script = org.jstype.CharacterIterator.Script.NEUTRAL;
   var lead = 0;
+  var direction = 0;
   var length = text.length;
   for (var i = 0; i < length; ++i) {
     var code = text.charCodeAt(i);
@@ -2554,12 +2909,15 @@ org.jstype.CharacterIterator.getVisualText_ = function(text, direction) {
     if (0xd800 <= code && code < 0xdc00) {
       lead = code;
     } else {
+      if (rewriter) {
+        code = rewriter.getCode(code);
+      }
       var codeScript = org.jstype.CharacterIterator.getScript_(code);
       if (codeScript != script) {
         if (word.length > 0) {
           runs.push(org.jstype.CharacterIterator.createRun_(word, script));
           direction +=
-              (script == org.jstype.CharacterIterator.Script.NEUTRAL) ? 1 : -1;
+              (script > org.jstype.CharacterIterator.Script.NEUTRAL) ? 1 : -1;
         }
         word = [];
       }
@@ -2570,7 +2928,7 @@ org.jstype.CharacterIterator.getVisualText_ = function(text, direction) {
   if (word.length > 0) {
     runs.push(org.jstype.CharacterIterator.createRun_(word, script));
     direction +=
-        (script == org.jstype.CharacterIterator.Script.NEUTRAL) ? 1 : -1;
+        (script > org.jstype.CharacterIterator.Script.NEUTRAL) ? 1 : -1;
   }
   if (direction < 0) {
     runs.reverse();
@@ -2609,6 +2967,24 @@ org.jstype.FontReader = function(data, size, opt_glyphQuota) {
    * @private
    */
   this.size_ = size;
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.isVertical_ = false;
+
+  /**
+   * @type {org.jstype.CharacterIterator.CodeRewriter}
+   * @private
+   */
+  this.rewriter_ = null;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.fontAscender_ = 0;
 
   /**
    * @type {number}
@@ -2708,23 +3084,46 @@ org.jstype.FontReader.prototype.openFont_ = function(id) {
                                       records,
                                       maxp.numGlyphs,
                                       head.indexToLocFormat);
-/*
-  var gsubRecord = records['GSUB'];
-  if (gsubRecord) {
-    this.gsub_ = new org.jstype.GsubTable(this.data_, gsubRecord);
-  }
-*/
   if (!this.cmap_.loadTable(this.data_, records, loca)) {
     return false;
   }
+  var gsubRecord = records['GSUB'];
+  if (gsubRecord) {
+    this.gsub_ = new org.jstype.GsubTable(this.data_, gsubRecord, loca);
+  }
+  var hhea = new org.jstype.HheaTable(this.data_, records);
+  this.fontAscender_ = hhea.ascender * this.fontScale_;
   var spaceId = this.cmap_.getGlyphId(0x0020);
   if (spaceId) {
-    var hhea = new org.jstype.HheaTable(this.data_, records);
     var hmtx = new org.jstype.HmtxTable(this.data_, records, hhea);
     this.spaceGlyph_ =
         new org.jstype.SpaceGlyph(0, 0, hmtx.metrics[spaceId].advanceWidth, 0);
   }
   return true;
+};
+
+/**
+ * Loads alternative glyphs and tries reading a glyph for this code when this
+ * font has a GSUB table. Return the glyph for a space character if this font
+ * does not have a GSUB table or it does not have alternative glyphs.
+ * @param {number} code
+ * @return {number}
+ * @private
+ */
+org.jstype.FontReader.prototype.getGlyphOffset_ = function (code) {
+  var offset = this.cmap_.getCodeOffset(code);
+  if (offset || !this.gsub_) {
+    return offset;
+  }
+  if (0xFE10 <= code && code <= 0xFE44) {
+    this.cmap_.setAlternativeCodes(this.data_,
+                                   this.gsub_,
+                                   org.jstype.JapaneseForms.VERT,
+                                   'kana',
+                                   '',
+                                   'vert');
+  }
+  return this.cmap_.getCodeOffset(code);
 };
 
 /**
@@ -2738,7 +3137,7 @@ org.jstype.FontReader.prototype.openFont_ = function(id) {
 org.jstype.FontReader.prototype.getGlyph_ = function(code) {
   var glyph = this.glyphMap_[code];
   if (!glyph) {
-    var offset = this.cmap_.getCodeOffset(code);
+    var offset = this.getGlyphOffset_(code);
     if (!offset) {
       return this.spaceGlyph_;
     }
@@ -2935,7 +3334,7 @@ org.jstype.FontReader.getGrayBitmap_ = function(data, width, height, colors) {
       count += COUNT[(data[line2 >> 3] >> shift) & 0xf];
       count += COUNT[(data[line3 >> 3] >> shift) & 0xf];
       /**
-       * An array enumerating palette indices. Math.round(i * 15 / 16).
+       * An array enumerating palette indices, i.e. Math.round(i * 15 / 16).
        * @const {Array.<number>}
        */
       var COLOR = [0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14, 15];
@@ -2960,7 +3359,7 @@ org.jstype.FontReader.prototype.measure = function(text, fontSize) {
   var length = text.length;
   for (var i = 0; i < length; ++i) {
     var glyph = this.getGlyph_(text.charCodeAt(i));
-    var advance = glyph.measure();
+    var advance = glyph.getAdvance();
     x += advance;
     widths.push(x * fontSize * this.fontScale_);
   }
@@ -2984,16 +3383,26 @@ org.jstype.FontReader.prototype.draw = function(text,
   if (!this.openFont_(0)) {
     return 0;
   }
-  var run = new org.jstype.CharacterIterator(text, 0);
-  var bitmap = new org.jstype.Bitmap(data, width, height);
-  var x = 0;
-  var y = 0;
-  var fontScale = fontSize * this.fontScale_;
+  var run = new org.jstype.CharacterIterator(text, this.rewriter_);
   var length = run.length;
-  for (var i = 0; i < length && x < width; ++i) {
-    var glyph = this.getGlyph_(run.charCodeAt(i));
-    var advance = glyph.draw(fontScale, bitmap, x, y, ++this.glyphFrame_);
-    x += advance;
+  var fontScale = fontSize * this.fontScale_;
+  var bitmap = new org.jstype.Bitmap(data, width, height);
+  if (this.isVertical_) {
+    var x = width - fontSize;
+    var y = height - fontSize * this.fontAscender_;
+    for (var i = 0; i < length && x < width; ++i) {
+      var glyph = this.getGlyph_(run.charCodeAt(i));
+      glyph.draw(fontScale, bitmap, x, y, ++this.glyphFrame_);
+      y -= fontSize;
+    }
+  } else {
+    var x = 0;
+    var y = height - fontSize * this.fontAscender_;
+    for (var i = 0; i < length && x < width; ++i) {
+      var glyph = this.getGlyph_(run.charCodeAt(i));
+      var advance = glyph.draw(fontScale, bitmap, x, y, ++this.glyphFrame_);
+      x += advance;
+    }
   }
   if (org.jstype.DEBUG) {
     if (org.jstype.global.console) {
@@ -3036,11 +3445,25 @@ org.jstype.FontReader.prototype.getBitmap = function(text,
   return '';
 };
 
+/**
+ * Sets font-rendering options.
+ * @param {boolean} isVertical
+ */
+org.jstype.FontReader.prototype.setOptions = function (isVertical) {
+  this.isVertical_ = isVertical;
+  if (isVertical) {
+    this.rewriter_ = new org.jstype.CharacterIterator.VerticalCodeRewriter();
+  } else {
+    this.rewriter_ = null;
+  }
+};
+
 // Export the org.jstype.FontReader class and its public methods.
 org.jstype.exportObject(
     'org.jstype.FontReader',
     org.jstype.FontReader,
     {
+      'setOptions': org.jstype.FontReader.prototype.setOptions,
       'draw': org.jstype.FontReader.prototype.draw,
       'getBitmap': org.jstype.FontReader.prototype.getBitmap,
       'measure': org.jstype.FontReader.prototype.measure
