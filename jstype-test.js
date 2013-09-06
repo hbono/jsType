@@ -1,4 +1,4 @@
-﻿// The namespace used by this application.
+// The namespace used by this application.
 var test = {};
 
 /**
@@ -25,10 +25,17 @@ test.drawText_ = function () {
   if (!word || word.value.length == 0) {
     return;
   }
-  var colors = [0xffffff, 0x000000];
+  /** @const {Array.<number>} */ var colors16 = [
+    0xffffff, 0xeeeeee, 0xdddddd, 0xcccccc,
+    0xbbbbbb, 0xaaaaaa, 0x999999, 0x888888,
+    0x777777, 0x666666, 0x555555, 0x444444,
+    0x333333, 0x222222, 0x111111, 0x000000
+  ];
+  /** @const {Array.<number>} */ var colors2 = [0xffffff, 0x000000];
+  var colors = colors16;
   var color = document.getElementById('color');
   if (color) {
-    var COLORS = {
+    /** @const {Object.<string,number>} */ var COLORS = {
       'black': 0x000000,
       'blue': 0xff0000,
       'red': 0x0000ff,
@@ -37,7 +44,9 @@ test.drawText_ = function () {
       'cyan': 0xffff00,
       'yellow': 0x00ffff
     };
-    colors[1] = COLORS[color.value];
+    for (var i = 0; i < colors.length; ++i) {
+      colors[i] |= COLORS[color.value];
+    }
   }
   var fontSize = 64;
   var size = document.getElementById('size');
@@ -176,6 +185,7 @@ test.addColorInput_ = function(parent) {
     option.value = options[i];
     option.innerText = options[i];
     option.style.color = options[i];
+    option.style.backgroundColor = options[i];
     color.appendChild(option);
   }
   group.appendChild(color);
@@ -225,9 +235,9 @@ test.addWordInput_ = function(parent) {
   var word = document.createElement('input');
   word.type = 'text';
   word.id = 'word';
-  // word.value = '\u00e9';
+  //word.value = '\u00e9';
   word.value = '\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064A\u0643\u0645.';
-  //word.value = '\u3066\u3059\u3068\u3002';
+  word.value = '\u3066\u3059\u3068\u3002';
   word.disabled = true;
   group.appendChild(word);
 

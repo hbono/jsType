@@ -1,4 +1,4 @@
-﻿// Copyright 2013 Hironori Bono. All Rights Reserved.
+// Copyright 2013 Hironori Bono. All Rights Reserved.
 
 // Create a namespace 'org.jstype' used in this file.
 var org = org || {};
@@ -17,7 +17,8 @@ org.jstype.COMPILED = false;
 org.jstype.DEBUG = false;
 
 /**
- * Whether to enable the debugging features of this library.
+ * Whether to fill the inside of a glyph. This feature is provided only for
+ * debugging our rasterizer.
  * @define {boolean}
  */
 org.jstype.FILL_GLYPH = true;
@@ -636,6 +637,23 @@ org.jstype.LocaTable = function(data, records, numGlyphs, format) {
 };
 
 /**
+ * Adjusts the offset values. When a glyph is an empty glyph, its offset is
+ * equal to the one of its next glyph. This function resets the offset values of
+ * such empty glyphs.
+ * @param {Array.<number>} offsets
+ * @param {number} numGlyphs
+ * @return {Array.<number>}
+ */
+org.jstype.LocaTable.adjustOffsets_ = function(offsets, numGlyphs) {
+  for (var i = 0; i < numGlyphs; ++i) {
+    if (offsets[i] == offsets[i + 1]) {
+      offsets[i] = 0;
+    }
+  }
+  return offsets;
+};
+
+/**
  * Reads a list of short (16-bit) offsets.
  * @param {Uint8Array} data
  * @param {number} offset
@@ -649,14 +667,12 @@ org.jstype.LocaTable.readShortOffsets_ = function(data,
                                                   numGlyphs,
                                                   glyf) {
   var offsets = [];
-  var previous = -1;
   for (var i = 0; i <= numGlyphs; ++i) {
     var value = org.jstype.read16(data, offset) << 1;
-    offsets.push(value > previous ? glyf + value : 0);
-    previous = value;
+    offsets.push(glyf + value);
     offset += 2;
   }
-  return offsets;
+  return org.jstype.LocaTable.adjustOffsets_(offsets, numGlyphs);
 };
 
 
@@ -674,14 +690,12 @@ org.jstype.LocaTable.readLongOffsets_ = function(data,
                                                  numGlyphs,
                                                  glyf) {
   var offsets = [];
-  var previous = -1;
   for (var i = 0; i <= numGlyphs; ++i) {
     var value = org.jstype.read32(data, offset);
-    offsets.push(value > previous ? glyf + value : 0);
-    previous = value;
+    offsets.push(glyf + value);
     offset += 4;
   }
-  return offsets;
+  return org.jstype.LocaTable.adjustOffsets_(offsets, numGlyphs);
 };
 
 /**
@@ -1694,24 +1708,27 @@ org.jstype.Bitmap.prototype.getString = function() {
 };
 
 /**
- * A class that serializes data to a base64 string.
+ * A class that serializes a stream of data to a base64 string.
  * @param {string} prefix
  * @constructor
  */
 org.jstype.BitmapWriter = function(prefix) {
   /**
+   * The base64 string serialized already.
    * @type {string}
    * @private
    */
   this.text_ = prefix;
 
   /**
+   * The data cached by this object.
    * @type {number}
    * @private
    */
   this.data_ = 0;
 
   /**
+   * The number of bits cached by this object.
    * @type {number}
    * @private
    */
@@ -1734,7 +1751,8 @@ org.jstype.BitmapWriter.BASE64_ = [
 ];
 
 /**
- * Writes one byte to the output stream.
+ * Writes one byte to the output stream. This function copies the input byte to
+ * a cache and writes four base64 characters when the cache has 24 bits of data.
  * @param {number} n
  */
 org.jstype.BitmapWriter.prototype.write = function(n) {
@@ -1752,7 +1770,8 @@ org.jstype.BitmapWriter.prototype.write = function(n) {
 };
 
 /**
- * Closes this output stream.
+ * Closes this output stream. This function writes remaining bits as base64
+ * characters.
  * @return {string}
  */
 org.jstype.BitmapWriter.prototype.close = function() {
@@ -1886,6 +1905,7 @@ org.jstype.CubicBezierPoint.calculate_ = function(n0, n1, n2, n3, t) {
  * @param {number} n
  * @param {number} t
  * @constructor
+ * @deprecated
  */
 org.jstype.FourthBezierPoint = function(path, n, t) {
   /**
@@ -1928,7 +1948,8 @@ org.jstype.FourthBezierPoint.calculate_ = function(n0, n1, n2, n3, n4, t) {
 
 /**
  * A class representing a list of scans rasterized from a font glyph. Each scan
- * includes intersections between a horizontal line 'y = k' and a curve.
+ * includes intersections between a horizontal line 'y = k' and the paths of the
+ * glyph.
  * @param {number} scale
  * @param {number} yMin
  * @param {number} yMax
@@ -1967,6 +1988,13 @@ org.jstype.Scan = function(scale, yMin, yMax) {
    */
   this.dirty_ = false;
 };
+
+/**
+ * A distance to stop recursive calls.
+ * @const {number}
+ * @private
+ */
+org.jstype.Scan.EPSILON_ = 4.0;
 
 /**
  * Defines a sort order of x coordinates in a scan. This function sorts the x
@@ -2018,11 +2046,15 @@ org.jstype.Scan.prototype.drawLine_ = function(x0, y0, x1, y1) {
  * @private
  */
 org.jstype.Scan.prototype.drawQuadraticBezier_ = function(path, index, p0, p1) {
-  if (org.jstype.floor(p0.x) != org.jstype.floor(p1.x)) {
+  var dx = p0.x - p1.x;
+  var dy = p0.y - p1.y;
+  if (org.jstype.Scan.EPSILON_ < dx * dx + dy * dy) {
     if (org.jstype.floor(p0.y) == org.jstype.floor(p1.y)) {
       return;
     }
-    var p = new org.jstype.QuadraticBezierPoint(path, index, (p0.t + p1.t) * 0.5);
+    var p = new org.jstype.QuadraticBezierPoint(path,
+                                                index,
+                                                (p0.t + p1.t) * 0.5);
     this.drawQuadraticBezier_(path, index, p0, p);
     this.drawQuadraticBezier_(path, index, p, p1);
     return;
@@ -2039,7 +2071,9 @@ org.jstype.Scan.prototype.drawQuadraticBezier_ = function(path, index, p0, p1) {
  * @private
  */
 org.jstype.Scan.prototype.drawCubicBezier_ = function(path, index, p0, p1) {
-  if (org.jstype.floor(p0.x) != org.jstype.floor(p1.x)) {
+  var dx = p0.x - p1.x;
+  var dy = p0.y - p1.y;
+  if (org.jstype.Scan.EPSILON_ < dx * dx + dy * dy) {
     if (org.jstype.floor(p0.y) == org.jstype.floor(p1.y)) {
       return;
     }
@@ -2060,7 +2094,9 @@ org.jstype.Scan.prototype.drawCubicBezier_ = function(path, index, p0, p1) {
  * @private
  */
 org.jstype.Scan.prototype.drawFourthBezier_ = function(path, index, p0, p1) {
-  if (org.jstype.floor(p0.x) != org.jstype.floor(p1.x)) {
+  var dx = p0.x - p1.x;
+  var dy = p0.y - p1.y;
+  if (org.jstype.Scan.EPSILON_ < dx * dx + dy * dy) {
     if (org.jstype.floor(p0.y) == org.jstype.floor(p1.y)) {
       return;
     }
@@ -3198,8 +3234,9 @@ org.jstype.FontReader.getMonoBitmap_ = function(data, width, height, colors) {
     0x00, 0x00, 0x00, 0x00   // bmiColors[1]
   ];
 
-  // Overwrite five fields (bfSize, biWidth, biHeight, biSizeImage, and
-  // bmiColors[]) so the generated BMP file represents the input image.
+  // Overwrite five variables (bfSize, biWidth, biHeight, biSizeImage) and a
+  // palette colors bmiColors[] so the generated BMP file represents the input
+  // image.
   var biWidth = width;
   var biHeight = height;
   var biSizeImage = ((biWidth + 7) >> 3) * biHeight;
@@ -3236,7 +3273,8 @@ org.jstype.FontReader.getMonoBitmap_ = function(data, width, height, colors) {
 };
 
 /**
- * Creates a Data URI representing a gray bitmap of the specified data.
+ * Creates a Data URI representing a gray bitmap of the specified data. This
+ * function packs 4 * 4 = 16 pixels and creates a 16-color bitmap.
  * @param {Uint8Array} data
  * @param {number} width
  * @param {number} height
@@ -3285,8 +3323,9 @@ org.jstype.FontReader.getGrayBitmap_ = function(data, width, height, colors) {
     0x00, 0x00, 0x00, 0x00   // bmiColor[15]
   ];
 
-  // Overwrite six fields (bfSize, biWidth, biHeight, biSizeImage, bmiColors[0],
-  // and bmiColors[1]) so the generated BMP file represents the input image.
+  // Overwrite five variables (bfSize, biWidth, biHeight, biSizeImage) and a
+  // palette colors bmiColors[] so the generated BMP file represents the input
+  // image.
   var biWidth = width >> 2;
   var biHeight = height >> 2;
   var biSizeImage = (biWidth >> 1) * biHeight;
@@ -3317,28 +3356,34 @@ org.jstype.FontReader.getGrayBitmap_ = function(data, width, height, colors) {
   for (var i = 0; i < header.length; ++i) {
     uri.write(header[i]);
   }
-  var line0 = 0;
+  var lineSize = width >> 3;
   for (var y = 0; y < height; y += 4) {
-    for (var x = 0; x < width; x += 4, line0 += 4) {
-      var line1 = line0 + width;
-      var line2 = line1 + width;
-      var line3 = line2 + width;
-      var shift = 8 - (line0 & 7) - 4;
+    var line0 = y * lineSize;
+    var line1 = line0 + lineSize;
+    var line2 = line1 + lineSize;
+    var line3 = line2 + lineSize;
+    for (var x = 0; x < width; x += 8) {
       /**
        * An array enumerating the counts of 1's for each number between 0 and 15.
        * @const {Array.<number>}
        */
       var COUNT = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
-      var count = COUNT[(data[line0 >> 3] >> shift) & 0xf];
-      count += COUNT[(data[line1 >> 3] >> shift) & 0xf];
-      count += COUNT[(data[line2 >> 3] >> shift) & 0xf];
-      count += COUNT[(data[line3 >> 3] >> shift) & 0xf];
       /**
        * An array enumerating palette indices, i.e. Math.round(i * 15 / 16).
        * @const {Array.<number>}
        */
       var COLOR = [0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14, 15];
-      uri.write(COLOR[count]);
+
+      // Read 8 * 4 = 32 pixels, count the number of 1's, and write 2 pixels.
+      var data0 = data[line0++];
+      var data1 = data[line1++];
+      var data2 = data[line2++];
+      var data3 = data[line3++];
+      var count0 = COUNT[data0 >> 4] + COUNT[data1 >> 4] +
+          COUNT[data2 >> 4] + COUNT[data3 >> 4];
+      var count1 = COUNT[data0 & 15] + COUNT[data1 & 15] +
+          COUNT[data2 & 15] + COUNT[data3 & 15];
+      uri.write((COLOR[count0] << 4) | COLOR[count1]);
     }
   }
   return uri.close();
@@ -3433,6 +3478,7 @@ org.jstype.FontReader.prototype.getBitmap = function(text,
   } else if (depth == 4) {
     width = ((width + 1) >> 1) << 3;
     height <<= 2;
+    fontSize <<= 2;
   }
   var data = new Uint8Array((width >> 3) * height);
   if (this.draw(text, fontSize, data, width, height)) {
