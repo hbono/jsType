@@ -222,6 +222,32 @@ org.jstype.JapaneseForms = {
 };
 
 /**
+ * Writes a log message to a debug console.
+ * @param {*} message
+ */
+org.jstype.log = function(message) {
+  if (org.jstype.DEBUG) {
+    var jsConsole = org.jstype.global.console;
+    if (jsConsole && jsConsole.log) {
+      jsConsole.log(message);
+    }
+  }
+};
+
+/**
+ * Writes a warning message to a debug console.
+ * @param {*} message
+ */
+org.jstype.warn = function(message) {
+  if (org.jstype.DEBUG) {
+    var jsConsole = org.jstype.global.console;
+    if (jsConsole && jsConsole.warn) {
+      jsConsole.warn(message);
+    }
+  }
+};
+
+/**
  * Exposes an object and its methods to the global namespace path.
  * @param {string} name
  * @param {Object} object
@@ -1094,21 +1120,23 @@ org.jstype.CodeMap.prototype.loadTable = function(data, records, loca) {
   var offset = record.tableOffset + 4;
   for (var i = 0; i < numTables; ++i) {
     /**
+     * Pairs of platform IDs and encoding IDs.
      * @enum {number}
      * @const
      */
     var EncodingId = {
-      SYMBOL: 0x00030001,
-      UNICODE_BMP: 0x00030001,
-      SHIFT_JIS: 0x00030002,
-      PRC: 0x00030003,
-      BIG5: 0x00030004,
-      WANSUNG: 0x00030005,
-      JOHAB: 0x00030006,
-      UNICODE_UCS4: 0x0003000a
+      UNICODE_UNICODE: 0x00000003,
+      MICROSOFT_UNICODE: 0x00030001,
+      MICROSOFT_SHIFTJIS: 0x00030002,
+      MICROSOFT_PRC: 0x00030003,
+      MICROSOFT_BIG5: 0x00030004,
+      MICROSOFT_WANSUNG: 0x00030005,
+      MICROSOFT_JOHAB: 0x00030006,
+      MICROSOFT_UNICODE_UCS4: 0x0003000a
     }
     var encoding = org.jstype.read32(data, offset);
-    if (encoding == EncodingId.UNICODE_BMP) {
+    if (encoding == EncodingId.UNICODE_UNICODE ||
+        encoding == EncodingId.MICROSOFT_UNICODE) {
       var subTableOffset =
           record.tableOffset + org.jstype.read32(data, offset + 4);
       return this.openFormat4_(data, records, loca, subTableOffset);
@@ -3098,9 +3126,13 @@ org.jstype.FontReader.prototype.openFont_ = function(id) {
     }
     offset = ttc.offsetTable[id];
   }
-  // Read TrueType headers required for creating a mapping table.
+  // Read TrueType headers required for creating a mapping table. Even though
+  // the OpenType specification writes a font version should be 0x00010000, some
+  // Mac fonts still use 0x74727565 ('true'). This code allows both as a
+  // workaround for these fonts.
   var offsetTable = new org.jstype.OffsetTable(this.data_, offset);
-  if (offsetTable.version != 0x00010000) {
+  if (offsetTable.version != 0x00010000 && offsetTable.version != 0x74727565) {
+    org.jstype.log('An invalid font header');
     return false;
   }
   /**
