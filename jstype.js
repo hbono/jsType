@@ -376,13 +376,13 @@ org.jstype.readTag = function(data, offset) {
  * @param {Uint8Array} data
  * @param {number} offset
  * @param {number} count
- * @return {Array.<number>}
+ * @return {Int32Array}
  * @private
  */
 org.jstype.readArray16s = function(data, offset, count) {
-  var list = [];
+  var list = new Int32Array(count);
   for (var i = 0; i < count; ++i) {
-    list.push(org.jstype.read16s(data, offset));
+    list[i] = org.jstype.read16s(data, offset);
     offset += 2;
   }
   return list;
@@ -393,13 +393,13 @@ org.jstype.readArray16s = function(data, offset, count) {
  * @param {Uint8Array} data
  * @param {number} offset
  * @param {number} count
- * @return {Array.<number>}
+ * @return {Int32Array}
  * @private
  */
 org.jstype.readArray16 = function(data, offset, count) {
-  var list = [];
+  var list = new Int32Array(count);
   for (var i = 0; i < count; ++i) {
-    list.push(org.jstype.read16(data, offset));
+    list[i] = org.jstype.read16(data, offset);
     offset += 2;
   }
   return list;
@@ -410,13 +410,13 @@ org.jstype.readArray16 = function(data, offset, count) {
  * @param {Uint8Array} data
  * @param {number} offset
  * @param {number} count
- * @return {Array.<number>}
+ * @return {Int32Array}
  * @private
  */
 org.jstype.readArray32 = function(data, offset, count) {
-  var list = [];
+  var list = new Int32Array(count);
   for (var i = 0; i < count; ++i) {
-    list.push(org.jstype.read32(data, offset));
+    list[i] = org.jstype.read32(data, offset);
     offset += 4;
   }
   return list;
@@ -444,7 +444,7 @@ org.jstype.CollectionHeader = function(data, offset) {
 
   /**
    * The offsets to the TrueType fonts in this collection.
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.offsetTable = org.jstype.readArray32(data, offset + 12, numFonts);
 };
@@ -655,7 +655,7 @@ org.jstype.LocaTable = function(data, records, numGlyphs, format) {
   var glyf = records['glyf'].tableOffset;
 
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.offsets = (format == 0) ?
       org.jstype.LocaTable.readShortOffsets_(data, offset, numGlyphs, glyf) :
@@ -666,9 +666,9 @@ org.jstype.LocaTable = function(data, records, numGlyphs, format) {
  * Adjusts the offset values. When a glyph is an empty glyph, its offset is
  * equal to the one of its next glyph. This function resets the offset values of
  * such empty glyphs.
- * @param {Array.<number>} offsets
+ * @param {Int32Array} offsets
  * @param {number} numGlyphs
- * @return {Array.<number>}
+ * @return {Int32Array}
  */
 org.jstype.LocaTable.adjustOffsets_ = function(offsets, numGlyphs) {
   for (var i = 0; i < numGlyphs; ++i) {
@@ -685,17 +685,17 @@ org.jstype.LocaTable.adjustOffsets_ = function(offsets, numGlyphs) {
  * @param {number} offset
  * @param {number} numGlyphs
  * @param {number} glyf
- * @return {Array.<number>}
+ * @return {Int32Array}
  * @private
  */
 org.jstype.LocaTable.readShortOffsets_ = function(data,
                                                   offset,
                                                   numGlyphs,
                                                   glyf) {
-  var offsets = [];
+  var offsets = new Int32Array(numGlyphs + 1);
   for (var i = 0; i <= numGlyphs; ++i) {
     var value = org.jstype.read16(data, offset) << 1;
-    offsets.push(glyf + value);
+    offsets[i] = glyf + value;
     offset += 2;
   }
   return org.jstype.LocaTable.adjustOffsets_(offsets, numGlyphs);
@@ -708,17 +708,17 @@ org.jstype.LocaTable.readShortOffsets_ = function(data,
  * @param {number} offset
  * @param {number} numGlyphs
  * @param {number} glyf
- * @return {Array.<number>}
+ * @return {Int32Array}
  * @private
  */
 org.jstype.LocaTable.readLongOffsets_ = function(data,
                                                  offset,
                                                  numGlyphs,
                                                  glyf) {
-  var offsets = [];
+  var offsets = new Int32Array(numGlyphs + 1);
   for (var i = 0; i <= numGlyphs; ++i) {
     var value = org.jstype.read32(data, offset);
-    offsets.push(glyf + value);
+    offsets[i] = glyf + value;
     offset += 4;
   }
   return org.jstype.LocaTable.adjustOffsets_(offsets, numGlyphs);
@@ -854,7 +854,7 @@ org.jstype.CodeMap = function() {
    * A mapping table from a character code to an offset to its glyph. This table
    * is used for rendering of simple glyphs, each of which does not need glyph
    * substitutions.
-   * @type {Array.<Array.<number>>}
+   * @type {Array.<Int32Array>}
    * @private
    */
   this.codeMap_ = org.jstype.CodeMap.createMap_(null);
@@ -863,7 +863,7 @@ org.jstype.CodeMap = function() {
    * A mapping table from a glyph ID to an offset to the glyph. This table is
    * used for rendering composite glyphs, each of which consists of one glyph or
    * more.
-   * @type {Array.<Array.<number>>}
+   * @type {Array.<Int32Array>}
    * @private
    */
   this.glyphMap_ = org.jstype.CodeMap.createMap_(null);
@@ -871,7 +871,7 @@ org.jstype.CodeMap = function() {
   /**
    * A mapping table from a character code to a glyph ID. This table is used for
    * glyph substitution.
-   * @type {Array.<Array.<number>>}
+   * @type {Array.<Int32Array>}
    * @private
    */
   this.charMap_ = org.jstype.CodeMap.createMap_(null);
@@ -880,7 +880,7 @@ org.jstype.CodeMap = function() {
 /**
  * Creates a mapping table used in this object.
  * @param {?number} v
- * @return {Array.<?number>|Array.<Array.<number>>}
+ * @return {Array.<Int32Array>}
  * @private
  */
 org.jstype.CodeMap.createMap_ = function(v) {
@@ -952,7 +952,7 @@ org.jstype.CodeMap.Format4 = function(data, offset) {
   this.rangeShift = org.jstype.read16(data, offset + 12);
 
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.endCount = org.jstype.readArray16(data, offset + 14, segCount);
   offset += 14 + segCountX2;
@@ -963,19 +963,19 @@ org.jstype.CodeMap.Format4 = function(data, offset) {
   this.resevedPad = org.jstype.read16(data, offset);
 
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.startCount = org.jstype.readArray16(data, offset + 2, segCount);
   offset += 2 + segCountX2;
 
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.idDelta = org.jstype.readArray16s(data, offset, segCount);
   offset += segCountX2;
 
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.idRangeOffset = org.jstype.CodeMap.Format4.readRangeOffsets_(
       data,
@@ -985,7 +985,7 @@ org.jstype.CodeMap.Format4 = function(data, offset) {
   offset += segCountX2;
 
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.glyphIdArray = org.jstype.readArray16(data, offset, glyphCount);
 };
@@ -996,17 +996,17 @@ org.jstype.CodeMap.Format4 = function(data, offset) {
  * @param {number} offset
  * @param {number} count
  * @param {number} arrayOffset
- * @return {Array.<number>} offset
+ * @return {Int32Array} offset
  * @private
  */
 org.jstype.CodeMap.Format4.readRangeOffsets_ = function(data,
                                                         offset,
                                                         count,
                                                         arrayOffset) {
-  var offsets = [];
+  var offsets = new Int32Array(count);
   for (var i = 0; i < count; ++i) {
     var value = org.jstype.read16(data, offset);
-    offsets.push(value == 0 ? 0 : (offset + value - arrayOffset) >> 1);
+    offsets[i] = value == 0 ? 0 : (offset + value - arrayOffset) >> 1;
     offset += 2;
   }
   return offsets;
@@ -1060,18 +1060,18 @@ org.jstype.CodeMap.prototype.openFormat4_ = function(data,
 org.jstype.CodeMap.prototype.setMap_ = function(code, glyphId, offset) {
   var codeHigh = code >> 8;
   if (!this.codeMap_[codeHigh]) {
-    this.codeMap_[codeHigh] = org.jstype.CodeMap.createMap_(0);
+    this.codeMap_[codeHigh] = new Int32Array(256);
   }
   this.codeMap_[codeHigh][code & 0xff] = offset;
 
   var glyphHigh = glyphId >> 8;
   if (!this.glyphMap_[glyphHigh]) {
-    this.glyphMap_[glyphHigh] = org.jstype.CodeMap.createMap_(0);
+    this.glyphMap_[glyphHigh] = new Int32Array(256);
   }
   this.glyphMap_[glyphHigh][glyphId & 0xff] = offset;
 
   if (!this.charMap_[codeHigh]) {
-    this.charMap_[codeHigh] = org.jstype.CodeMap.createMap_(0);
+    this.charMap_[codeHigh] = new Int32Array(256);
   }
   this.charMap_[codeHigh][code & 0xff] = glyphId;
 };
@@ -1134,6 +1134,8 @@ org.jstype.CodeMap.prototype.loadTable = function(data, records, loca) {
       MICROSOFT_JOHAB: 0x00030006,
       MICROSOFT_UNICODE_UCS4: 0x0003000a
     }
+    // This library supports only Unicode fonts which have at least one
+    // Format 4 table for simplicity.
     var encoding = org.jstype.read32(data, offset);
     if (encoding == EncodingId.UNICODE_UNICODE ||
         encoding == EncodingId.MICROSOFT_UNICODE) {
@@ -1219,7 +1221,7 @@ org.jstype.GsubTable = function(data, record, loca) {
    * @type {Array.<org.jstype.GsubTable.Script>}
    * @private
    */
-  this.scripts_ = null; // org.jstype.GsubTable.readTable_(data, offset);
+  this.scripts_ = null;
 };
 
 /**
@@ -1256,7 +1258,7 @@ org.jstype.GsubTable.prototype.getLookupRecords = function(data,
  * @param {string} script
  * @param {string} language
  * @param {string} feature
- * @param {Array.<number>} offsets
+ * @param {Int32Array} offsets
  * @constructor
  */
 org.jstype.GsubTable.Script = function(script, language, feature, offsets) {
@@ -1276,7 +1278,7 @@ org.jstype.GsubTable.Script = function(script, language, feature, offsets) {
   this.feature = feature;
 
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.offsets = offsets;
 };
@@ -1323,9 +1325,9 @@ org.jstype.GsubTable.readTable_ = function(data, offset) {
     var script = scriptRecords[i];
     for (var j = 0; j < script.featureIndices.length; ++j) {
       var feature = featureRecords[script.featureIndices[j]];
-      var lookupOffsets = [];
+      var lookupOffsets = new Int32Array(feature.lookupIndices.length);
       for (var k = 0; k < feature.lookupIndices.length; ++k) {
-        lookupOffsets.push(lookupRecords[feature.lookupIndices[k]]);
+        lookupOffsets[k] = lookupRecords[feature.lookupIndices[k]];
       }
       scripts.push(new org.jstype.GsubTable.Script(script.tag,
                                                    script.language,
@@ -1339,17 +1341,17 @@ org.jstype.GsubTable.readTable_ = function(data, offset) {
 /**
  * @param {Uint8Array} data
  * @param {number} offset
- * @return {Array.<number>}
+ * @return {Int32Array}
  * @private
  */
 org.jstype.GsubTable.readLookupRecords_ = function(data, offset) {
   offset += org.jstype.read16(data, offset + 8);
-  var records = [];
   var recordCount = org.jstype.read16(data, offset);
   var recordOffset = offset;
+  var records = new Int32Array(recordCount);
   for (var i = 0; i < recordCount; ++i) {
     recordOffset += 2;
-    records.push(offset + org.jstype.read16(data, recordOffset));
+    records[i] = offset + org.jstype.read16(data, recordOffset);
   }
   return records;
 };
@@ -1377,7 +1379,7 @@ org.jstype.GsubTable.FeatureRecord = function(data, offset, tag) {
   var lookupCount = org.jstype.read16(data, offset + 2);
 
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.lookupIndices = org.jstype.readArray16(data, offset + 4, lookupCount);
 };
@@ -1438,7 +1440,7 @@ org.jstype.GsubTable.ScriptRecord = function(data, offset, tag, language) {
   var featureCount = org.jstype.read16(data, offset + 4);
 
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    */
   this.featureIndices = org.jstype.readArray16(data, offset + 6, featureCount);
 };
@@ -1547,13 +1549,13 @@ org.jstype.GsubTable.LookupRecord.SingleSubstitute1.prototype.substitute =
 };
 
 /**
- * @param {Array.<number>} substitutes
+ * @param {Int32Array} substitutes
  * @implements {org.jstype.GsubTable.LookupRecord.Delegate}
  * @constructor
  */
 org.jstype.GsubTable.LookupRecord.SingleSubstitute2 = function(substitutes) {
   /**
-   * @const {Array.<number>}
+   * @const {Int32Array}
    * @private
    */
   this.substitutes_ = substitutes;
@@ -1604,7 +1606,6 @@ org.jstype.GsubTable.LookupRecord.readSubtables_ = function(data,
   }
   var recordOffset = offset + 6;
   for (var i = 0; i < count; ++i) {
-    // memo: 3 -> 0xb9f30, 7 -> 0xba1e6, 9 -> 0xba21e,...
     var tableOffset = offset + org.jstype.read16(data, recordOffset);
     recordOffset += 2;
 
@@ -1761,7 +1762,7 @@ org.jstype.BitmapWriter = function(prefix) {
    * @private
    */
   this.bits_ = 0;
-}
+};
 
 /**
  * @const {Array.<string>}
@@ -1781,19 +1782,74 @@ org.jstype.BitmapWriter.BASE64_ = [
 /**
  * Writes one byte to the output stream. This function copies the input byte to
  * a cache and writes four base64 characters when the cache has 24 bits of data.
+ * @param {number} data
+ * @private
+ */
+org.jstype.BitmapWriter.prototype.writeText_ = function(data) {
+  this.text_ += org.jstype.BitmapWriter.BASE64_[(data >> 18) & 0x3f];
+  this.text_ += org.jstype.BitmapWriter.BASE64_[(data >> 12) & 0x3f];
+  this.text_ += org.jstype.BitmapWriter.BASE64_[(data >> 6) & 0x3f];
+  this.text_ += org.jstype.BitmapWriter.BASE64_[data & 0x3f];
+};
+
+/**
+ * Writes one byte to the output stream. This function copies the input byte to
+ * a cache and writes four base64 characters when the cache has 24 bits of data.
  * @param {number} n
  */
 org.jstype.BitmapWriter.prototype.write = function(n) {
   this.data_ <<= 8;
-  this.data_ |= n & 0xff;
+  this.data_ |= n;  // n & 0xff;
   this.bits_ += 8;
   if (this.bits_ == 24) {
-    this.text_ += org.jstype.BitmapWriter.BASE64_[(this.data_ >> 18) & 0x3f];
-    this.text_ += org.jstype.BitmapWriter.BASE64_[(this.data_ >> 12) & 0x3f];
-    this.text_ += org.jstype.BitmapWriter.BASE64_[(this.data_ >> 6) & 0x3f];
-    this.text_ += org.jstype.BitmapWriter.BASE64_[this.data_ & 0x3f];
+    this.writeText_(this.data_);
     this.bits_ = 0;
     this.data_ = 0;
+  }
+};
+
+/**
+ * Writes an array of data. This function is designed for writing many bytes of
+ * data at once.
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @param {number} length
+ */
+org.jstype.BitmapWriter.prototype.writeArray = function(data, offset, length) {
+  if (length < 2) {
+    this.write(data[offset]);
+    return;
+  }
+  // This data is sufficiently huge to serialize it directly to the output
+  // stream without using a cache, i.e. this code:
+  // 1. Flushes the cache with this data;
+  // 2. Serializes the data to the output stream for every three bytes, and;
+  // 3. Resets up the cache.
+  if (this.bits_ == 8) {
+    this.writeText_(
+        (this.data_ << 16) | (data[offset] << 8) | data[offset + 1]);
+    offset += 2;
+    length -= 2;
+  } else if (this.bits_ == 16) {
+    this.writeText_((this.data_ << 8) | data[offset]);
+    ++offset;
+    --length;
+  }
+  while (length >= 3) {
+    this.writeText_(
+        (data[offset] << 16) | (data[offset + 1] << 8) | data[offset + 2]);
+    offset += 3;
+    length -= 3;
+  }
+  if (length == 1) {
+    this.data_ = data[offset];
+    this.bits_ = 8;
+  } else if (length == 2) {
+    this.data_ = (data[offset] << 8) | data[offset + 1];
+    this.bits_ = 16;
+  } else {
+    this.data_ = 0;
+    this.bits_ = 0;
   }
 };
 
@@ -2032,7 +2088,7 @@ org.jstype.Scan.EPSILON_ = 4.0;
  * @return {number}
  * @private
  */
-org.jstype.Scan.sort_ = function (a, b) {
+org.jstype.Scan.sort_ = function(a, b) {
   return a - b;
 };
 
@@ -2654,7 +2710,7 @@ org.jstype.CharacterIterator.VerticalCodeRewriter = function() {
  * in vertical text.
  * @private
  */
-org.jstype.CharacterIterator.VerticalCodeRewriter.getMap_ = function () {
+org.jstype.CharacterIterator.VerticalCodeRewriter.getMap_ = function() {
   var codeMap = {};
   var length = org.jstype.JapaneseForms.VERT.length;
   for (var i = 0; i < length; i += 2) {
@@ -2665,7 +2721,8 @@ org.jstype.CharacterIterator.VerticalCodeRewriter.getMap_ = function () {
 };
 
 /** @override */
-org.jstype.CharacterIterator.VerticalCodeRewriter.prototype.getCode = function (code) {
+org.jstype.CharacterIterator.VerticalCodeRewriter.prototype.getCode = function(
+    code) {
   return this.codeMap_[code] || code;
 };
 
@@ -2908,7 +2965,7 @@ org.jstype.CharacterIterator.Script = {
  * @param {number} code
  * @private
  */
-org.jstype.CharacterIterator.getScript_ = function (code) {
+org.jstype.CharacterIterator.getScript_ = function(code) {
   if (code <= 0x002F) {
     return org.jstype.CharacterIterator.Script.NEUTRAL;
   } else if (code < 0x0590) {
@@ -3122,6 +3179,7 @@ org.jstype.FontReader.prototype.openFont_ = function(id) {
   if (ttcTag == 0x74746366) {
     var ttc = new org.jstype.CollectionHeader(this.data_, offset);
     if (ttc.offsetTable.length < id) {
+      org.jstype.log('An invalid collection header');
       return false;
     }
     offset = ttc.offsetTable[id];
@@ -3178,7 +3236,7 @@ org.jstype.FontReader.prototype.openFont_ = function(id) {
  * @return {number}
  * @private
  */
-org.jstype.FontReader.prototype.getGlyphOffset_ = function (code) {
+org.jstype.FontReader.prototype.getGlyphOffset_ = function(code) {
   var offset = this.cmap_.getCodeOffset(code);
   if (offset || !this.gsub_) {
     return offset;
@@ -3243,9 +3301,9 @@ org.jstype.FontReader.getMonoBitmap_ = function(data, width, height, colors) {
   /**
    * A BITMAPFILEHEADER object and a BITMAPINFO object representing a monochrome
    * BMP file.
-   * @type {Array.<number>}
+   * @type {Uint8Array}
    */
-  var header = [
+  var header = new Uint8Array([
     0x42, 0x4d,              // bfType
     0x00, 0x00, 0x00, 0x00,  // bfSize
     0x00, 0x00,              // bfReserved1
@@ -3264,7 +3322,8 @@ org.jstype.FontReader.getMonoBitmap_ = function(data, width, height, colors) {
     0x00, 0x00, 0x00, 0x00,  // bmiHeader.biClrImportant
     0xff, 0xff, 0xff, 0x00,  // bmiColors[0]
     0x00, 0x00, 0x00, 0x00   // bmiColors[1]
-  ];
+  ]);
+  var HEADER_SIZE = 14 + 40 + 2 * 4;
 
   // Overwrite five variables (bfSize, biWidth, biHeight, biSizeImage) and a
   // palette colors bmiColors[] so the generated BMP file represents the input
@@ -3273,34 +3332,30 @@ org.jstype.FontReader.getMonoBitmap_ = function(data, width, height, colors) {
   var biHeight = height;
   var biSizeImage = ((biWidth + 7) >> 3) * biHeight;
   var bfSize = header.length + biSizeImage;
-  header[2] = bfSize & 0xff;
-  header[3] = (bfSize >> 8) & 0xff;
-  header[4] = (bfSize >> 16) & 0xff;
-  header[5] = (bfSize >> 24) & 0xff;
-  header[18] = biWidth & 0xff;
-  header[19] = (biWidth >> 8) & 0xff;
-  header[22] = biHeight & 0xff;
-  header[23] = (biHeight >> 8) & 0xff;
-  header[34] = biSizeImage & 0xff;
-  header[35] = (biSizeImage >> 8) & 0xff;
-  header[36] = (biSizeImage >> 16) & 0xff;
-  header[37] = (biSizeImage >> 24) & 0xff;
+  header[2] = bfSize;
+  header[3] = bfSize >> 8;
+  header[4] = bfSize >> 16;
+  header[5] = bfSize >> 24;
+  header[18] = biWidth;
+  header[19] = biWidth >> 8;
+  header[22] = biHeight;
+  header[23] = biHeight >> 8;
+  header[34] = biSizeImage;
+  header[35] = biSizeImage >> 8;
+  header[36] = biSizeImage >> 16;
+  header[37] = biSizeImage >> 24;
   var offset = 54;
   for (var i = 0; i < 2; ++i) {
-    header[offset] = (colors[i] >> 16) & 0xff;
-    header[offset + 1] = (colors[i] >> 8) & 0xff;
-    header[offset + 2] = colors[i] & 0xff;
+    header[offset] = colors[i] >> 16;
+    header[offset + 1] = colors[i] >> 8;
+    header[offset + 2] = colors[i];
     offset += 4;
   }
 
   // Write the BMP header and the given data to the output stream.
   var uri = new org.jstype.BitmapWriter('data:image/bmp;base64,');
-  for (var i = 0; i < header.length; ++i) {
-    uri.write(header[i]);
-  }
-  for (var i = 0; i < data.length; ++i) {
-    uri.write(data[i]);
-  }
+  uri.writeArray(header, 0, HEADER_SIZE);
+  uri.writeArray(data, 0, data.length);
   return uri.close();
 };
 
@@ -3318,9 +3373,9 @@ org.jstype.FontReader.getGrayBitmap_ = function(data, width, height, colors) {
   /**
    * A BITMAPFILEHEADER object and a BITMAPINFO object representing a 16-color
    * BMP file.
-   * @type {Array.<number>}
+   * @type {Uint8Array}
    */
-  var header = [
+  var header = new Uint8Array([
     0x42, 0x4d,              // bfType
     0x00, 0x00, 0x00, 0x00,  // bfSize
     0x00, 0x00,              // bfReserved1
@@ -3353,7 +3408,8 @@ org.jstype.FontReader.getGrayBitmap_ = function(data, width, height, colors) {
     0x22, 0x22, 0x22, 0x00,  // bmiColor[13]
     0x11, 0x11, 0x11, 0x00,  // bmiColor[14]
     0x00, 0x00, 0x00, 0x00   // bmiColor[15]
-  ];
+  ]);
+  var HEADER_SIZE = 14 + 40 + 16 * 4;
 
   // Overwrite five variables (bfSize, biWidth, biHeight, biSizeImage) and a
   // palette colors bmiColors[] so the generated BMP file represents the input
@@ -3362,32 +3418,30 @@ org.jstype.FontReader.getGrayBitmap_ = function(data, width, height, colors) {
   var biHeight = height >> 2;
   var biSizeImage = (biWidth >> 1) * biHeight;
   var bfSize = header.length + biSizeImage;
-  header[2] = bfSize & 0xff;
-  header[3] = (bfSize >> 8) & 0xff;
-  header[4] = (bfSize >> 16) & 0xff;
-  header[5] = (bfSize >> 24) & 0xff;
-  header[18] = biWidth & 0xff;
-  header[19] = (biWidth >> 8) & 0xff;
-  header[22] = biHeight & 0xff;
-  header[23] = (biHeight >> 8) & 0xff;
-  header[34] = biSizeImage & 0xff;
-  header[35] = (biSizeImage >> 8) & 0xff;
-  header[36] = (biSizeImage >> 16) & 0xff;
-  header[37] = (biSizeImage >> 24) & 0xff;
+  header[2] = bfSize;
+  header[3] = bfSize >> 8;
+  header[4] = bfSize >> 16;
+  header[5] = bfSize >> 24;
+  header[18] = biWidth;
+  header[19] = biWidth >> 8;
+  header[22] = biHeight;
+  header[23] = biHeight >> 8;
+  header[34] = biSizeImage;
+  header[35] = biSizeImage >> 8;
+  header[36] = biSizeImage >> 16;
+  header[37] = biSizeImage >> 24;
   var offset = 54;
   for (var i = 0; i < 16; ++i) {
-    header[offset] = (colors[i] >> 16) & 0xff;
-    header[offset + 1] = (colors[i] >> 8) & 0xff;
-    header[offset + 2] = colors[i] & 0xff;
+    header[offset] = colors[i] >> 16;
+    header[offset + 1] = colors[i] >> 8;
+    header[offset + 2] = colors[i];
     offset += 4;
   }
 
   // Write the BMP header and the given data to the output stream. (This code
   // assumes the given width is a multiple of eight.)
   var uri = new org.jstype.BitmapWriter('data:image/bmp;base64,');
-  for (var i = 0; i < header.length; ++i) {
-    uri.write(header[i]);
-  }
+  uri.writeArray(header, 0, HEADER_SIZE);
   var lineSize = width >> 3;
   for (var y = 0; y < height; y += 4) {
     var line0 = y * lineSize;
@@ -3481,11 +3535,7 @@ org.jstype.FontReader.prototype.draw = function(text,
       x += advance;
     }
   }
-  if (org.jstype.DEBUG) {
-    if (org.jstype.global.console) {
-      org.jstype.global.console.log(bitmap.getString());
-    }
-  }
+  org.jstype.log(bitmap.getString());
   return x;
 };
 
@@ -3527,7 +3577,7 @@ org.jstype.FontReader.prototype.getBitmap = function(text,
  * Sets font-rendering options.
  * @param {boolean} isVertical
  */
-org.jstype.FontReader.prototype.setOptions = function (isVertical) {
+org.jstype.FontReader.prototype.setOptions = function(isVertical) {
   this.isVertical_ = isVertical;
   if (isVertical) {
     this.rewriter_ = new org.jstype.CharacterIterator.VerticalCodeRewriter();
