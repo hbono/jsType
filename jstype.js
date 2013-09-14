@@ -2078,7 +2078,7 @@ org.jstype.Scan = function(scale, yMin, yMax) {
  * @const {number}
  * @private
  */
-org.jstype.Scan.EPSILON_ = 4.0;
+org.jstype.Scan.EPSILON_ = 2.0;
 
 /**
  * Defines a sort order of x coordinates in a scan. This function sorts the x
@@ -2130,9 +2130,8 @@ org.jstype.Scan.prototype.drawLine_ = function(x0, y0, x1, y1) {
  * @private
  */
 org.jstype.Scan.prototype.drawQuadraticBezier_ = function(path, index, p0, p1) {
-  var dx = p0.x - p1.x;
-  var dy = p0.y - p1.y;
-  if (org.jstype.Scan.EPSILON_ < dx * dx + dy * dy) {
+  var dx = p0.x >= p1.x ? p0.x - p1.x : p1.x - p0.x;
+  if (org.jstype.Scan.EPSILON_ < dx) {
     if (org.jstype.floor(p0.y) == org.jstype.floor(p1.y)) {
       return;
     }
@@ -2155,9 +2154,8 @@ org.jstype.Scan.prototype.drawQuadraticBezier_ = function(path, index, p0, p1) {
  * @private
  */
 org.jstype.Scan.prototype.drawCubicBezier_ = function(path, index, p0, p1) {
-  var dx = p0.x - p1.x;
-  var dy = p0.y - p1.y;
-  if (org.jstype.Scan.EPSILON_ < dx * dx + dy * dy) {
+  var dx = p0.x >= p1.x ? p0.x - p1.x : p1.x - p0.x;
+  if (org.jstype.Scan.EPSILON_ < dx) {
     if (org.jstype.floor(p0.y) == org.jstype.floor(p1.y)) {
       return;
     }
@@ -2178,9 +2176,8 @@ org.jstype.Scan.prototype.drawCubicBezier_ = function(path, index, p0, p1) {
  * @private
  */
 org.jstype.Scan.prototype.drawFourthBezier_ = function(path, index, p0, p1) {
-  var dx = p0.x - p1.x;
-  var dy = p0.y - p1.y;
-  if (org.jstype.Scan.EPSILON_ < dx * dx + dy * dy) {
+  var dx = p0.x >= p1.x ? p0.x - p1.x : p1.x - p0.x;
+  if (org.jstype.Scan.EPSILON_ < dx) {
     if (org.jstype.floor(p0.y) == org.jstype.floor(p1.y)) {
       return;
     }
