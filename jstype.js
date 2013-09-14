@@ -1741,7 +1741,7 @@ org.jstype.Bitmap.prototype.getString = function() {
  * @param {string} prefix
  * @constructor
  */
-org.jstype.BitmapWriter = function(prefix) {
+org.jstype.URIWriter = function(prefix) {
   /**
    * The base64 string serialized already.
    * @type {string}
@@ -1768,7 +1768,7 @@ org.jstype.BitmapWriter = function(prefix) {
  * @const {Array.<string>}
  * @private
  */
-org.jstype.BitmapWriter.BASE64_ = [
+org.jstype.URIWriter.BASE64_ = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
   'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
   'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -1785,11 +1785,11 @@ org.jstype.BitmapWriter.BASE64_ = [
  * @param {number} data
  * @private
  */
-org.jstype.BitmapWriter.prototype.writeText_ = function(data) {
-  this.text_ += org.jstype.BitmapWriter.BASE64_[(data >> 18) & 0x3f];
-  this.text_ += org.jstype.BitmapWriter.BASE64_[(data >> 12) & 0x3f];
-  this.text_ += org.jstype.BitmapWriter.BASE64_[(data >> 6) & 0x3f];
-  this.text_ += org.jstype.BitmapWriter.BASE64_[data & 0x3f];
+org.jstype.URIWriter.prototype.writeText_ = function(data) {
+  this.text_ += org.jstype.URIWriter.BASE64_[(data >> 18) & 0x3f];
+  this.text_ += org.jstype.URIWriter.BASE64_[(data >> 12) & 0x3f];
+  this.text_ += org.jstype.URIWriter.BASE64_[(data >> 6) & 0x3f];
+  this.text_ += org.jstype.URIWriter.BASE64_[data & 0x3f];
 };
 
 /**
@@ -1797,7 +1797,7 @@ org.jstype.BitmapWriter.prototype.writeText_ = function(data) {
  * a cache and writes four base64 characters when the cache has 24 bits of data.
  * @param {number} n
  */
-org.jstype.BitmapWriter.prototype.write = function(n) {
+org.jstype.URIWriter.prototype.write = function(n) {
   this.data_ <<= 8;
   this.data_ |= n;  // n & 0xff;
   this.bits_ += 8;
@@ -1815,7 +1815,7 @@ org.jstype.BitmapWriter.prototype.write = function(n) {
  * @param {number} offset
  * @param {number} length
  */
-org.jstype.BitmapWriter.prototype.writeArray = function(data, offset, length) {
+org.jstype.URIWriter.prototype.writeArray = function(data, offset, length) {
   if (length < 2) {
     this.write(data[offset]);
     return;
@@ -1858,17 +1858,17 @@ org.jstype.BitmapWriter.prototype.writeArray = function(data, offset, length) {
  * characters.
  * @return {string}
  */
-org.jstype.BitmapWriter.prototype.close = function() {
+org.jstype.URIWriter.prototype.close = function() {
   if (this.bits_ == 8) {
     this.data_ <<= 16;
-    this.text_ += org.jstype.BitmapWriter.BASE64_[(this.data_ >> 18) & 0x3f];
-    this.text_ += org.jstype.BitmapWriter.BASE64_[(this.data_ >> 12) & 0x3f];
+    this.text_ += org.jstype.URIWriter.BASE64_[(this.data_ >> 18) & 0x3f];
+    this.text_ += org.jstype.URIWriter.BASE64_[(this.data_ >> 12) & 0x3f];
     this.text_ += '==';
   } else if (this.bits_ == 16) {
     this.data_ <<= 8;
-    this.text_ += org.jstype.BitmapWriter.BASE64_[(this.data_ >> 18) & 0x3f];
-    this.text_ += org.jstype.BitmapWriter.BASE64_[(this.data_ >> 12) & 0x3f];
-    this.text_ += org.jstype.BitmapWriter.BASE64_[(this.data_ >> 6) & 0x3f];
+    this.text_ += org.jstype.URIWriter.BASE64_[(this.data_ >> 18) & 0x3f];
+    this.text_ += org.jstype.URIWriter.BASE64_[(this.data_ >> 12) & 0x3f];
+    this.text_ += org.jstype.URIWriter.BASE64_[(this.data_ >> 6) & 0x3f];
     this.text_ += '=';
   }
   return this.text_;
@@ -3350,7 +3350,7 @@ org.jstype.FontReader.getMonoBitmap_ = function(data, width, height, colors) {
   }
 
   // Write the BMP header and the given data to the output stream.
-  var uri = new org.jstype.BitmapWriter('data:image/bmp;base64,');
+  var uri = new org.jstype.URIWriter('data:image/bmp;base64,');
   uri.writeArray(header, 0, HEADER_SIZE);
   uri.writeArray(data, 0, data.length);
   return uri.close();
@@ -3437,7 +3437,7 @@ org.jstype.FontReader.getGrayBitmap_ = function(data, width, height, colors) {
 
   // Write the BMP header and the given data to the output stream. (This code
   // assumes the given width is a multiple of eight.)
-  var uri = new org.jstype.BitmapWriter('data:image/bmp;base64,');
+  var uri = new org.jstype.URIWriter('data:image/bmp;base64,');
   uri.writeArray(header, 0, HEADER_SIZE);
   var lineSize = width >> 3;
   for (var y = 0; y < height; y += 4) {
