@@ -11,6 +11,12 @@ org.jstype = org.jstype || {};
 org.jstype.COMPILED = false;
 
 /**
+ * Whether to write PNG images.
+ * @define {boolean}
+ */
+org.jstype.USE_PNG = true;
+
+/**
  * Whether to enable the debugging features of this library.
  * @define {boolean}
  */
@@ -1809,6 +1815,27 @@ org.jstype.URIWriter.prototype.write = function(n) {
 };
 
 /**
+ * Writes a 32-bit integer to the output stream.
+ * @param {number} n
+ */
+org.jstype.URIWriter.prototype.write32 = function(n) {
+  if (this.bits_ == 0) {
+    this.writeText_((n >>> 8) & 0xffffff);
+    this.bits_ = 8;
+    this.data_ = n & 0xff;
+  } else if (this.bits_ == 8) {
+    this.writeText_((this.data_ << 16) | ((n >>> 16) & 0xffff));
+    this.bits_ = 16;
+    this.data_ = n & 0xffff;
+  } else {
+    this.writeText_((this.data_ << 8) | ((n >>> 24) & 0xff));
+    this.writeText_(n & 0xffffff);
+    this.bits_ = 0;
+    this.data_ = 0;
+  }
+};
+
+/**
  * Writes an array of data. This function is designed for writing many bytes of
  * data at once.
  * @param {Uint8Array} data
@@ -1872,6 +1899,556 @@ org.jstype.URIWriter.prototype.close = function() {
     this.text_ += '=';
   }
   return this.text_;
+};
+
+/**
+ * A class that creates a PNG image from a bitmap and writes it to a DataURI
+ * text.
+ * @constructor
+ */
+org.jstype.PNGWriter = function() {
+  /**
+   * @type {org.jstype.URIWriter}
+   * @private
+   */
+  this.uri_ = new org.jstype.URIWriter('data:image/png;base64,');
+};
+
+/**
+ * Calculates the CRC32 checksum (polynomial 0x104C11DB7) of the given array.
+ * @param {number} crc
+ * @param {Uint8Array} data
+ * @param {number} head
+ * @param {number} tail
+ * @private
+ */
+org.jstype.PNGWriter.getCRC32_ = function(crc, data, head, tail) {
+  /**
+   * A table used for calculating CRC32 values on the polynomial 0x104C11DB7.
+   * @const {Array.<number>}
+   */
+  var CRC32 = [
+    0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
+    0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
+    0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
+    0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
+    0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de,
+    0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7,
+    0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec,
+    0x14015c4f, 0x63066cd9, 0xfa0f3d63, 0x8d080df5,
+    0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172,
+    0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b,
+    0x35b5a8fa, 0x42b2986c, 0xdbbbc9d6, 0xacbcf940,
+    0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59,
+    0x26d930ac, 0x51de003a, 0xc8d75180, 0xbfd06116,
+    0x21b4f4b5, 0x56b3c423, 0xcfba9599, 0xb8bda50f,
+    0x2802b89e, 0x5f058808, 0xc60cd9b2, 0xb10be924,
+    0x2f6f7c87, 0x58684c11, 0xc1611dab, 0xb6662d3d,
+    0x76dc4190, 0x01db7106, 0x98d220bc, 0xefd5102a,
+    0x71b18589, 0x06b6b51f, 0x9fbfe4a5, 0xe8b8d433,
+    0x7807c9a2, 0x0f00f934, 0x9609a88e, 0xe10e9818,
+    0x7f6a0dbb, 0x086d3d2d, 0x91646c97, 0xe6635c01,
+    0x6b6b51f4, 0x1c6c6162, 0x856530d8, 0xf262004e,
+    0x6c0695ed, 0x1b01a57b, 0x8208f4c1, 0xf50fc457,
+    0x65b0d9c6, 0x12b7e950, 0x8bbeb8ea, 0xfcb9887c,
+    0x62dd1ddf, 0x15da2d49, 0x8cd37cf3, 0xfbd44c65,
+    0x4db26158, 0x3ab551ce, 0xa3bc0074, 0xd4bb30e2,
+    0x4adfa541, 0x3dd895d7, 0xa4d1c46d, 0xd3d6f4fb,
+    0x4369e96a, 0x346ed9fc, 0xad678846, 0xda60b8d0,
+    0x44042d73, 0x33031de5, 0xaa0a4c5f, 0xdd0d7cc9,
+    0x5005713c, 0x270241aa, 0xbe0b1010, 0xc90c2086,
+    0x5768b525, 0x206f85b3, 0xb966d409, 0xce61e49f,
+    0x5edef90e, 0x29d9c998, 0xb0d09822, 0xc7d7a8b4,
+    0x59b33d17, 0x2eb40d81, 0xb7bd5c3b, 0xc0ba6cad,
+    0xedb88320, 0x9abfb3b6, 0x03b6e20c, 0x74b1d29a,
+    0xead54739, 0x9dd277af, 0x04db2615, 0x73dc1683,
+    0xe3630b12, 0x94643b84, 0x0d6d6a3e, 0x7a6a5aa8,
+    0xe40ecf0b, 0x9309ff9d, 0x0a00ae27, 0x7d079eb1,
+    0xf00f9344, 0x8708a3d2, 0x1e01f268, 0x6906c2fe,
+    0xf762575d, 0x806567cb, 0x196c3671, 0x6e6b06e7,
+    0xfed41b76, 0x89d32be0, 0x10da7a5a, 0x67dd4acc,
+    0xf9b9df6f, 0x8ebeeff9, 0x17b7be43, 0x60b08ed5,
+    0xd6d6a3e8, 0xa1d1937e, 0x38d8c2c4, 0x4fdff252,
+    0xd1bb67f1, 0xa6bc5767, 0x3fb506dd, 0x48b2364b,
+    0xd80d2bda, 0xaf0a1b4c, 0x36034af6, 0x41047a60,
+    0xdf60efc3, 0xa867df55, 0x316e8eef, 0x4669be79,
+    0xcb61b38c, 0xbc66831a, 0x256fd2a0, 0x5268e236,
+    0xcc0c7795, 0xbb0b4703, 0x220216b9, 0x5505262f,
+    0xc5ba3bbe, 0xb2bd0b28, 0x2bb45a92, 0x5cb36a04,
+    0xc2d7ffa7, 0xb5d0cf31, 0x2cd99e8b, 0x5bdeae1d,
+    0x9b64c2b0, 0xec63f226, 0x756aa39c, 0x026d930a,
+    0x9c0906a9, 0xeb0e363f, 0x72076785, 0x05005713,
+    0x95bf4a82, 0xe2b87a14, 0x7bb12bae, 0x0cb61b38,
+    0x92d28e9b, 0xe5d5be0d, 0x7cdcefb7, 0x0bdbdf21,
+    0x86d3d2d4, 0xf1d4e242, 0x68ddb3f8, 0x1fda836e,
+    0x81be16cd, 0xf6b9265b, 0x6fb077e1, 0x18b74777,
+    0x88085ae6, 0xff0f6a70, 0x66063bca, 0x11010b5c,
+    0x8f659eff, 0xf862ae69, 0x616bffd3, 0x166ccf45,
+    0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2,
+    0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db,
+    0xaed16a4a, 0xd9d65adc, 0x40df0b66, 0x37d83bf0,
+    0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,
+    0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6,
+    0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf,
+    0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
+    0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
+  ];
+  while (head < tail) {
+    crc = CRC32[(crc ^ data[head]) & 255] ^ (crc >>> 8);
+    ++head;
+  }
+  return crc;
+};
+
+/**
+ * Writes a 32-bit integer to the specified byte array.
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @param {number} value
+ * @private
+ */
+org.jstype.PNGWriter.write32_ = function(data, offset, value) {
+  data[offset] = value >> 24;
+  data[offset + 1] = value >> 16;
+  data[offset + 2] = value >> 8;
+  data[offset + 3] = value;
+};
+
+/**
+ * Writes a 32-bit integer to the specified byte array.
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @param {number} value
+ * @private
+ */
+org.jstype.PNGWriter.writeRGB_ = function(data, offset, value) {
+  data[offset] = value;
+  data[offset + 1] = value >> 8;
+  data[offset + 2] = value >> 16;
+};
+
+/**
+ * Calculates the CRC32 checksum of the specified chunk and writes it to the CRC
+ * field of the chunk.
+ * @param {Uint8Array} data
+ * @param {number} head
+ * @param {number} tail
+ * @private
+ */
+org.jstype.PNGWriter.writeCRC_ = function(data, head, tail) {
+  var crc = org.jstype.PNGWriter.getCRC32_(0xffffffff, data, head, tail);
+  crc ^= 0xffffffff;
+  org.jstype.PNGWriter.write32_(data, tail, crc);
+};
+
+/**
+ * Creates the data of a two-color PNG image. Each line of a PNG image starts
+ * with a filter byte and this function adds it.
+ * @param {Uint8Array} data
+ * @param {number} width
+ * @param {number} height
+ * @return {Uint8Array}
+ * @private
+ */
+org.jstype.PNGWriter.getMonochromeImage_ = function(data, width, height) {
+  var LINE_SIZE = width >> 3;
+  var image = new Uint8Array((1 + LINE_SIZE) * height);
+  var offset = -1;
+  for (var y = height - 1; y >= 0; --y) {
+    var line = y * LINE_SIZE - 1;
+    image[++offset] = 0;
+    for (var x = 0; x < LINE_SIZE; ++x) {
+      image[++offset] = data[++line];
+    }
+  }
+  return image;
+};
+
+/**
+ * Creates an anti-aliased copy of the specified bitmap. This function packs
+ * 4 * 4 = 16 pixels and creates a 16-color bitmap.
+ * @param {Uint8Array} data
+ * @param {number} width
+ * @param {number} height
+ * @return {Uint8Array}
+ * @private
+ */
+org.jstype.PNGWriter.getGrayImage_ = function(data, width, height) {
+  var LINE_SIZE = width >> 3;
+  var image = new Uint8Array((1 + LINE_SIZE) * (height >> 2));
+  var offset = -1;
+  for (var y = height - 4; y >= 0; y -= 4) {
+    var line0 = y * LINE_SIZE - 1;
+    var line1 = line0 + LINE_SIZE;
+    var line2 = line1 + LINE_SIZE;
+    var line3 = line2 + LINE_SIZE;
+    image[++offset] = 0;
+    for (var x = 0; x < width; x += 8) {
+      /**
+       * An array enumerating the counts of 1's for each number between 0 and 15.
+       * @const {Array.<number>}
+       */
+      var COUNT = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
+      /**
+       * An array enumerating palette indices, i.e. Math.round(i * 15 / 16).
+       * @const {Array.<number>}
+       */
+      var COLOR = [0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14, 15];
+
+      // Read 8 * 4 = 32 pixels, count the number of 1's, and write 2 pixels.
+      var data0 = data[++line0];
+      var data1 = data[++line1];
+      var data2 = data[++line2];
+      var data3 = data[++line3];
+      var count0 = COUNT[data0 >> 4] + COUNT[data1 >> 4] +
+          COUNT[data2 >> 4] + COUNT[data3 >> 4];
+      var count1 = COUNT[data0 & 15] + COUNT[data1 & 15] +
+          COUNT[data2 & 15] + COUNT[data3 & 15];
+      image[++offset] = (COLOR[count0] << 4) | COLOR[count1];
+    }
+  }
+  return image;
+};
+
+/**
+ * Calculates the Adler-32 checksum of the specified data and returns it.
+ * @param {Uint8Array} data
+ * @return {number}
+ * @private
+ */
+org.jstype.PNGWriter.getAdler32_ = function(data) {
+  var adler = 1;
+  var s1 = adler & 0xffff;
+  var s2 = (adler >> 16) & 0xffff;
+  var length = data.length;
+  for (var i = 0; i < length; ++i) {
+    var BASE = 65521;  // largest prime smaller than 65536
+    s1 = (s1 + data[i]) % BASE;
+    s2 = (s2 + s1) % BASE;
+  }
+  return (s2 << 16) + s1;
+}
+
+/**
+ * Writes a PNG header for monochrome images to the output stream.
+ * @param {number} width
+ * @param {number} height
+ * @param {Array.<number>} colors
+ * @private
+ */
+org.jstype.PNGWriter.prototype.writeMonochromeHeader_ = function(width,
+                                                                 height,
+                                                                 colors) {
+  /**
+   * PNG chunks used in this function.
+   * @type {Uint8Array}
+   */
+  var chunks = new Uint8Array([
+    // A PNG signature
+    0x89, 0x50, 0x4E, 0x47,
+    0x0D, 0x0A, 0x1A, 0x0A,
+
+    // An IHDR chunk.
+    0x00, 0x00, 0x00, 0x0D,  // IHDR size (13)
+    0x49, 0x48, 0x44, 0x52,  // IHDR type ('IHDR')
+    0x00, 0x00, 0x00, 0x00,  // IHDR width
+    0x00, 0x00, 0x00, 0x00,  // IHDR height
+    0x01,                    // IHDR bit depth (1 bit/pixel)
+    0x03,                    // IHDR color type (Indexed)
+    0x00,                    // IHDR compression method (ZLIB)
+    0x00,                    // IHDR filter method (0)
+    0x00,                    // IHDR interlace method (None)
+    0x00, 0x00, 0x00, 0x00,  // IHDR CRC
+
+    // A PLTE chunk
+    0x00, 0x00, 0x00, 0x06,  // PLTE size (6)
+    0x50, 0x4C, 0x54, 0x45,  // PLTE type ('PLTE')
+    0xFF, 0xFF, 0xFF,        // PLTE color[0]
+    0x00, 0x00, 0x00,        // PLTE color[1]
+    0x55, 0xC2, 0xD3, 0x7E,  // PLTE CRC
+
+    // A tRNS chunk
+    0x00, 0x00, 0x00, 0x02,  // tRNS size (2)
+    0x74, 0x52, 0x4E, 0x53,  // tRNS type ('tRNS')
+    0x00,                    // tRNS alpha[0]
+    0xFF,                    // tRNS alpha[15]
+    0x5B, 0x91, 0x22, 0xB5   // tRNS CRC
+  ]);
+  var IHDR_SIZE = 8;
+  var IHDR_TYPE = IHDR_SIZE + 4;
+  var IHDR_DATA = IHDR_TYPE + 4;
+  var IHDR_CRC = IHDR_DATA + 13;
+  org.jstype.PNGWriter.write32_(chunks, IHDR_DATA + 0, width);
+  org.jstype.PNGWriter.write32_(chunks, IHDR_DATA + 4, height);
+  org.jstype.PNGWriter.writeCRC_(chunks, IHDR_TYPE, IHDR_CRC);
+
+  var PLTE_SIZE = IHDR_CRC + 4;
+  var PLTE_TYPE = PLTE_SIZE + 4;
+  var PLTE_DATA = PLTE_TYPE + 4;
+  var PLTE_CRC = PLTE_DATA + 6;
+  org.jstype.PNGWriter.writeRGB_(chunks, PLTE_DATA + 0, colors[0]);
+  org.jstype.PNGWriter.writeRGB_(chunks, PLTE_DATA + 3, colors[1]);
+  org.jstype.PNGWriter.writeCRC_(chunks, PLTE_TYPE, PLTE_CRC);
+
+  var TRNS_SIZE = PLTE_CRC + 4;
+  var TRNS_TYPE = TRNS_SIZE + 4;
+  var TRNS_DATA = TRNS_TYPE + 4;
+  var TRNS_CRC = TRNS_DATA + 2;
+  org.jstype.PNGWriter.writeCRC_(chunks, TRNS_TYPE, TRNS_CRC);
+
+  var HEADER_SIZE = TRNS_CRC + 4;
+  this.uri_.writeArray(chunks, 0, HEADER_SIZE);
+};
+
+/**
+ * Writes a PNG header to the output stream.
+ * @param {number} width
+ * @param {number} height
+ * @param {Array.<number>} colors
+ * @private
+ */
+org.jstype.PNGWriter.prototype.writeHeader_ = function(width, height, colors) {
+  /**
+   * PNG chunks used in this function.
+   * @type {Uint8Array}
+   */
+  var chunks = new Uint8Array([
+    // A PNG signature
+    0x89, 0x50, 0x4E, 0x47,
+    0x0D, 0x0A, 0x1A, 0x0A,
+
+    // An IHDR chunk.
+    0x00, 0x00, 0x00, 0x0D,  // IHDR size (13)
+    0x49, 0x48, 0x44, 0x52,  // IHDR type ('IHDR')
+    0x00, 0x00, 0x00, 0x00,  // IHDR width
+    0x00, 0x00, 0x00, 0x00,  // IHDR height
+    0x04,                    // IHDR bit depth (4 bits/pixel)
+    0x03,                    // IHDR color type (Indexed)
+    0x00,                    // IHDR compression method (ZLIB)
+    0x00,                    // IHDR filter method (0)
+    0x00,                    // IHDR interlace method (None)
+    0x00, 0x00, 0x00, 0x00,  // IHDR CRC
+
+    // A PLTE chunk
+    0x00, 0x00, 0x00, 0x30,  // PLTE size (48)
+    0x50, 0x4C, 0x54, 0x45,  // PLTE type ('PLTE')
+    0xFF, 0xFF, 0xFF,        // PLTE color[0]
+    0xEE, 0xEE, 0xEE,        // PLTE color[1]
+    0xDD, 0xDD, 0xDD,        // PLTE color[2]
+    0xCC, 0xCC, 0xCC,        // PLTE color[3]
+    0xBB, 0xBB, 0xBB,        // PLTE color[4]
+    0xAA, 0xAA, 0xAA,        // PLTE color[5]
+    0x99, 0x99, 0x99,        // PLTE color[6]
+    0x88, 0x88, 0x88,        // PLTE color[7]
+    0x77, 0x77, 0x77,        // PLTE color[8]
+    0x66, 0x66, 0x66,        // PLTE color[9]
+    0x55, 0x55, 0x55,        // PLTE color[10]
+    0x44, 0x44, 0x44,        // PLTE color[11]
+    0x33, 0x33, 0x33,        // PLTE color[12]
+    0x22, 0x22, 0x22,        // PLTE color[13]
+    0x11, 0x11, 0x11,        // PLTE color[14]
+    0x00, 0x00, 0x00,        // PLTE color[15]
+    0x6F, 0x80, 0xBC, 0x41,  // PLTE CRC
+
+    // A tRNS chunk
+    0x00, 0x00, 0x00, 0x10,  // tRNS size (16)
+    0x74, 0x52, 0x4E, 0x53,  // tRNS type ('tRNS')
+    0x00,                    // tRNS alpha[0]
+    0x11,                    // tRNS alpha[1]
+    0x22,                    // tRNS alpha[2]
+    0x33,                    // tRNS alpha[3]
+    0x44,                    // tRNS alpha[4]
+    0x55,                    // tRNS alpha[5]
+    0x66,                    // tRNS alpha[6]
+    0x77,                    // tRNS alpha[7]
+    0x88,                    // tRNS alpha[8]
+    0x99,                    // tRNS alpha[9]
+    0xAA,                    // tRNS alpha[10]
+    0xBB,                    // tRNS alpha[11]
+    0xCC,                    // tRNS alpha[12]
+    0xDD,                    // tRNS alpha[13]
+    0xEE,                    // tRNS alpha[14]
+    0xFF,                    // tRNS alpha[15]
+    0x76, 0x95, 0x01, 0x15   // tRNS CRC
+  ]);
+  var IHDR_SIZE = 8;
+  var IHDR_TYPE = IHDR_SIZE + 4;
+  var IHDR_DATA = IHDR_TYPE + 4;
+  var IHDR_CRC = IHDR_DATA + 13;
+  org.jstype.PNGWriter.write32_(chunks, IHDR_DATA + 0, width);
+  org.jstype.PNGWriter.write32_(chunks, IHDR_DATA + 4, height);
+  org.jstype.PNGWriter.writeCRC_(chunks, IHDR_TYPE, IHDR_CRC);
+
+  var PLTE_SIZE = IHDR_CRC + 4;
+  var PLTE_TYPE = PLTE_SIZE + 4;
+  var PLTE_DATA = PLTE_TYPE + 4;
+  var PLTE_CRC = PLTE_DATA + 48;
+  var offset = PLTE_DATA;
+  for (var i = 0; i < 16; ++i, offset += 3) {
+    org.jstype.PNGWriter.writeRGB_(chunks, offset, colors[i]);
+  }
+  org.jstype.PNGWriter.writeCRC_(chunks, PLTE_TYPE, PLTE_CRC);
+
+  var TRNS_SIZE = PLTE_CRC + 4;
+  var TRNS_TYPE = TRNS_SIZE + 4;
+  var TRNS_DATA = TRNS_TYPE + 4;
+  var TRNS_CRC = TRNS_DATA + 16;
+  org.jstype.PNGWriter.writeCRC_(chunks, TRNS_TYPE, TRNS_CRC);
+
+  var HEADER_SIZE = TRNS_CRC + 4;
+  this.uri_.writeArray(chunks, 0, HEADER_SIZE);
+};
+
+/**
+ * Writes a data fragment of an IDAT chunk to the output stream.
+ * @param {number} crc32
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @param {number} length
+ * @return {number}
+ * @private
+ */
+org.jstype.PNGWriter.prototype.writeData_ = function(crc32,
+                                                     data,
+                                                     offset,
+                                                     length) {
+  crc32 = org.jstype.PNGWriter.getCRC32_(crc32, data, offset, offset + length);
+  this.uri_.writeArray(data, offset, length);
+  return crc32;
+};
+
+/**
+ * Writes an IDAT chunk of the specified image to the output stream.
+ * @param {Uint8Array} image
+ * @private
+ */
+org.jstype.PNGWriter.prototype.writeImage_ = function(image) {
+  // Calculates the size of this IDAT chunk. This function splits image data to
+  // 32KB blocks and encapsulates them to stored (uncompressed) blocks as listed
+  // in the figure listed below. (Even though one deflate block can contain up
+  // to 65535 bytes of data in theory, this function creates a deflate block for
+  // every 32768 bytes of data for simplicity.)
+  // 
+  //   block                   size
+  //   +------------------+
+  //   |    CHUNK SIZE    |    4
+  //   +------------------+ 
+  //   |    CHUNK TYPE    |    4
+  //   +------------------+
+  //   |   ZLIB HEADER    |    2
+  //   +------------------+
+  //   | DEFLATE HEADER 0 |    5
+  //   +------------------+
+  //   |  DEFLATE DATA 0  |    32768
+  //   +------------------+
+  //           ...
+  //   +------------------+
+  //   | DEFLATE HEADER N |     5
+  //   +------------------+
+  //   |  DEFLATE DATA N  |     image.length % 32768
+  //   +------------------+
+  //   |   ZLIB FOOTER    |     4
+  //   +------------------+
+  //   |   CHUNK CRC32    |     4
+  //   +------------------+
+  //
+  var ZLIB_HEADER_SIZE = 2;
+  var ZLIB_FOOTER_SIZE = 4;
+  var DEFLATE_HEADER_SIZE = 5;
+  var length = image.length;
+  var blocks = (length + 32767) >> 15;
+  var size = (ZLIB_HEADER_SIZE +
+              DEFLATE_HEADER_SIZE * blocks + length +
+              ZLIB_FOOTER_SIZE);
+  this.uri_.write32(size);
+
+  // Writes the data of this IDAT chunk, which consists of a chunk type, a ZLIB
+  // header, and DEFLATE blocks. This part needs its CRC32 checksum to be
+  // written at the end of this chunk.
+  var IDAT_HEADER = new Uint8Array([
+    0x49, 0x44, 0x41, 0x54,  // IDAT type ('IDAT')
+    0x78,                    // ZLIB CM (deflate), CINFO (7)
+    0x01                     // ZLIB FCHECK (1), FDICT (none), FLEVEL (fastest)
+  ]);
+  var IDAT_HEADER_SIZE = 6;
+  var crc32 = this.writeData_(0xffffffff, IDAT_HEADER, 0, IDAT_HEADER_SIZE);
+
+  /**
+   * The DEFALTE header for stored blocks. Note: ZLIB uses the Intel byte order
+   * (a.k.a. little endian) to store multi-byte values.
+   * @const {Uint8Array}
+   */
+  var deflateHeader = new Uint8Array([
+    0x00,                    // DEFLATE BFINAL (false), BTYPE (stored)
+    0x00, 0x80,              // DEFLATE LEN (32768)
+    0xFF, 0x7F               // DEFLATE NLEN (~32768)
+  ]);
+  var offset = 0;
+  var DEFLATE_UNIT = 32768;
+  while (length > DEFLATE_UNIT) {
+    crc32 = this.writeData_(crc32, deflateHeader, 0, DEFLATE_HEADER_SIZE);
+    crc32 = this.writeData_(crc32, image, offset, DEFLATE_UNIT);
+    offset += DEFLATE_UNIT;
+    length -= DEFLATE_UNIT;
+  }
+  var nlength = ~length;
+  deflateHeader[0] = 0x01;   // DEFLATE BFINAL (true), BTYPE (stored)
+  deflateHeader[1] = length;
+  deflateHeader[2] = length >> 8;
+  deflateHeader[3] = nlength;
+  deflateHeader[4] = nlength >> 8;
+  crc32 = this.writeData_(crc32, deflateHeader, 0, DEFLATE_HEADER_SIZE);
+  crc32 = this.writeData_(crc32, image, offset, length);
+
+  // Writes the footer of this IDAT chunk, which consists of an Adler-32
+  // checksum of the image and a CRC32 checksum of this chunk.
+  var adler32 = org.jstype.PNGWriter.getAdler32_(image);
+  this.uri_.write32(adler32);
+  this.uri_.write32(crc32 ^ 0xffffffff);
+};
+
+/**
+ * Writes an IEND chunk of the specified image to the output stream.
+ * @private
+ */
+org.jstype.PNGWriter.prototype.writeFooter_ = function () {
+  /**
+   * An IEND chunk.
+   * @const {Uint8Array}
+   */
+  var IEND_DATA = new Uint8Array([
+    0x00, 0x00, 0x00, 0x00,  // IEND Size (0)
+    0x49, 0x45, 0x4E, 0x44,  // IEND Type ('IEND')
+    0xAE, 0x42, 0x60, 0x82   // IEND CRC
+  ]);
+  var IEND_SIZE = 12;
+  this.uri_.writeArray(IEND_DATA, 0, IEND_SIZE);
+};
+
+/**
+ * Creates a Data URI representing a PNG image of the specified data.
+ * @param {Uint8Array} data
+ * @param {number} width
+ * @param {number} height
+ * @param {Array.<number>} colors
+ * @return {string}
+ */
+org.jstype.PNGWriter.prototype.getURI = function(data, width, height, colors) {
+  var image = null;
+  if (colors.length == 2) {
+    this.writeMonochromeHeader_(width, height, colors);
+    image = org.jstype.PNGWriter.getMonochromeImage_(data, width, height);
+  } else if (colors.length == 16) {
+    var pngWidth = width >> 2;
+    var pngHeight = height >> 2;
+    this.writeHeader_(pngWidth, pngHeight, colors);
+    image = org.jstype.PNGWriter.getGrayImage_(data, width, height);
+  } else {
+    return '';
+  }
+  this.writeImage_(image);
+  this.writeFooter_();
+  return this.uri_.close();
 };
 
 /**
@@ -3561,6 +4138,10 @@ org.jstype.FontReader.prototype.getBitmap = function(text,
   }
   var data = new Uint8Array((width >> 3) * height);
   if (this.draw(text, fontSize, data, width, height)) {
+    if (org.jstype.USE_PNG) {
+      var writer = new org.jstype.PNGWriter();
+      return writer.getURI(data, width, height, colors);
+    }
     if (depth == 1) {
       return org.jstype.FontReader.getMonoBitmap_(data, width, height, colors);
     } else if (depth == 4) {
