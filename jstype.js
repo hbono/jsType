@@ -2825,6 +2825,68 @@ org.jstype.Scan.prototype.writeBitmap = function(bitmap, x, y) {
 };
 
 /**
+ * A class that writes a SVG path representing a contour of a glyph. This class
+ * parses a contour of a org.jstype.Glyph object and creates a SVG path from it.
+ * A TrueType font stores glyph paths in binary format and it is not trivial to
+ * generate an SVG path from them.
+ * @constructor
+ */
+org.jstype.PathWriter = function() {
+  /**
+   * @type {string}
+   * @private
+   */
+  this.text_ = '';
+};
+
+/**
+ * Starts writing a new path.
+ * @param {org.jstype.GlyphPoint} point
+ */
+org.jstype.PathWriter.prototype.open = function(point) {
+  this.text_ = 'M ' + point.x + ' ' + point.y;
+};
+
+/**
+ * Adds points to this path.
+ * @param {Array.<org.jstype.GlyphPoint>} points
+ */
+org.jstype.PathWriter.prototype.addPoints = function(points) {
+  var index = 0;
+  var length = points.length;
+  while (length >= 4) {
+    var curve = [
+      points[index + 1].x, points[index + 1].y,
+      points[index + 2].x, points[index + 2].y,
+      points[index + 3].x, points[index + 3].y
+    ];
+    this.text_ += ' C ' + curve.join(' ');
+    index += 3;
+    length -= 3;
+  }
+  if (length == 2) {
+    this.text_ += ' L ' + points[index + 1].x + ' ' + points[index + 1].y;
+  } else if (length == 3) {
+    var curve = [
+      points[index + 1].x, points[index + 1].y,
+      points[index + 2].x, points[index + 2].y
+    ];
+    this.text_ += ' Q ' + curve.join(' ');
+  }
+};
+
+/**
+ * Closes this path and returns its string representation.
+ * @return {string}
+ */
+org.jstype.PathWriter.prototype.close = function() {
+  // This function does not need to add a 'Z' (closepath) command because
+  // org.jstype.Glyph.getOutline() calls org.jstype.PathWriter.addPoints() to
+  // close this path.
+  return this.text_;
+};
+
+/**
  * An interface that provides functions that render a font glyph and return its
  * metrics.
  * @interface
@@ -2842,6 +2904,13 @@ org.jstype.GlyphModel = function() {
  * @return {number}
  */
 org.jstype.GlyphModel.prototype.draw = function(scale, bitmap, x, y, frame) {
+};
+
+/**
+ * Returns the outline of this glyph.
+ * @return {Array.<string>}
+ */
+org.jstype.GlyphModel.prototype.getOutline = function(scale, frame) {
 };
 
 /**
@@ -2916,6 +2985,11 @@ org.jstype.SpaceGlyph = function(xMin, yMin, xMax, yMax) {
 /** @override */
 org.jstype.SpaceGlyph.prototype.draw = function(scale, bitmap, x, y, frame) {
   return this.xMax_ * scale;
+};
+
+/** @override */
+org.jstype.SpaceGlyph.prototype.getOutline = function(scale, frame) {
+  return [];
 };
 
 /** @override */
@@ -3194,6 +3268,39 @@ org.jstype.Glyph.prototype.draw = function(scale, bitmap, x, y, frame) {
   this.scan_.writeBitmap(bitmap, x, org.jstype.round(y));
   this.frame_ = frame;
   return this.xMax_ * scale;
+};
+
+/** @override */
+org.jstype.Glyph.prototype.getOutline = function(scale, frame) {
+  var outline = [];
+  var path = new org.jstype.PathWriter();
+  var length = this.contours_.length;
+  for (var i = 0; i < length; ++i) {
+    var contour = this.contours_[i];
+    var pointsOfContour = contour.length;
+    var startPoint = new org.jstype.GlyphPoint(0,
+                                               contour[0].x * scale,
+                                               contour[0].y * scale);
+    path.open(startPoint);
+    var points = [startPoint];
+    for (var j = 1; j < pointsOfContour; ++j) {
+      var point = new org.jstype.GlyphPoint(0,
+                                            contour[j].x * scale,
+                                            contour[j].y * scale);
+      points.push(point);
+      if (contour[j].onCurve) {
+        path.addPoints(points);
+        points = [point];
+      }
+    }
+    if (points.length > 0) {
+      points.push(startPoint);
+      path.addPoints(points);
+    }
+    outline.push(path.close());
+  }
+  this.frame_ = frame;
+  return outline;
 };
 
 /** @override */
@@ -4152,6 +4259,24 @@ org.jstype.FontReader.prototype.getBitmap = function(text,
 };
 
 /**
+ * Retrieves the outline for a character in the TrueType font. This function
+ * creates a list of SVG paths of the specified character and returns an array
+ * of strings. (A font glyph usually consists of two or more closed paths and it
+ * makes more sense to return a list of SVG paths.)
+ * @param {string} text
+ * @param {number} fontSize
+ * @return {Array.<string>}
+ */
+org.jstype.FontReader.prototype.getOutline = function(text, fontSize) {
+  // Even though this text consists only of one character, we create a
+  // CharacterIterator object so it can replace the input character to its
+  // presentation form.
+  var run = new org.jstype.CharacterIterator(text, this.rewriter_);
+  var glyph = this.getGlyph_(run.charCodeAt(0));
+  return glyph.getOutline(fontSize * this.fontScale_, ++this.glyphFrame_);
+};
+
+/**
  * Sets font-rendering options.
  * @param {boolean} isVertical
  */
@@ -4169,9 +4294,8 @@ org.jstype.exportObject(
     'org.jstype.FontReader',
     org.jstype.FontReader,
     {
-      'setOptions': org.jstype.FontReader.prototype.setOptions,
-      'draw': org.jstype.FontReader.prototype.draw,
       'getBitmap': org.jstype.FontReader.prototype.getBitmap,
-      'measure': org.jstype.FontReader.prototype.measure
+      'getOutline': org.jstype.FontReader.prototype.getOutline,
+      'setOptions': org.jstype.FontReader.prototype.setOptions
     }
 );
