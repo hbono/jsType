@@ -4268,6 +4268,9 @@ org.jstype.FontReader.prototype.getBitmap = function(text,
  * @return {Array.<string>}
  */
 org.jstype.FontReader.prototype.getOutline = function(text, fontSize) {
+  if (!this.openFont_(0)) {
+    return [];
+  }
   // Even though this text consists only of one character, we create a
   // CharacterIterator object so it can replace the input character to its
   // presentation form.
@@ -4278,11 +4281,11 @@ org.jstype.FontReader.prototype.getOutline = function(text, fontSize) {
 
 /**
  * Sets font-rendering options.
- * @param {boolean} isVertical
+ * @param {Object} options
  */
-org.jstype.FontReader.prototype.setOptions = function(isVertical) {
-  this.isVertical_ = isVertical;
-  if (isVertical) {
+org.jstype.FontReader.prototype.setOptions = function(options) {
+  this.isVertical_ = !!options['vertical'];
+  if (this.isVertical_) {
     this.rewriter_ = new org.jstype.CharacterIterator.VerticalCodeRewriter();
   } else {
     this.rewriter_ = null;

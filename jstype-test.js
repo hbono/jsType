@@ -54,8 +54,9 @@ test.drawText_ = function () {
     fontSize = size.value | 0;
   }
   var writing = document.getElementById('writing');
-  var isVertical = writing && writing.value == 'vertical';
-  test.reader_.setOptions(isVertical);
+  var options = {};
+  options['vertical'] = writing && writing.value == 'vertical';
+  test.reader_.setOptions(options);
 
   var width = test.Output.WIDTH;
   var height = test.Output.HEIGHT;
