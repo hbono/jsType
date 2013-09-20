@@ -1,14 +1,24 @@
-jsType - an OpenType font renderer written in JavaScript
+jsType - a text-rendering engine written in JavaScript
 
-1. Background
+1. What is jsType?
 
-This project is a JavaScript library that renders text with OpenType fonts on all major browsers and NodeJS without any external libraries, such as FreeType, etc. To render text without any external libraries, this library implements all components needed for rendering OpenType fonts in JavaScript, e.g. a font parser that interprets OpenType tables; a rasterizer that renders font glyphs to a bitmap, and; a serializer that creates a Data URI from the rasterized bitmap.
+JsType is a software text-rendering engine written in JavaScript that is designed to be run on browsers and NodeJS. JsType basically consists of two parts: a font-rendering engine (like FreeType) and a text-processing engine needed for rendering internationalized text (like Pango). It processes internationalized text, renders its characters, and generates a Data URI or a SVG path so web applications can use its output without conversions.
+Note that jsType is designed for implementing minimal features needed for rendering internationalized text with TrueType fonts and it does not implement lots of features needed for supporting all TrueType fonts, e.g. jsType does not have the TrueType bytecode interpreter or PostScript interpreter.
+For those who like to evaluate jsType with your browser, we provide <a href="http://hbono.github.com/jsType/jstype-test.html">a test page</a> that renders text with a TrueType font and creates a PNG image.
 
-2. Usage
+2. Features
 
-This library includes a sample web application 'jstype.html' and 'jstype-test.js' so we can renderk text with OpenType fonts installed in a local PC. To use this sample application, follow the steps listed below.
+The following is a non-exhaustive list of features provided by jsType.
 
-(1) Download all JavaScript files and HTML files in this project.
-(2) Open the sample HTML file 'jstype.html' with your favorite browser.
-(3) Click a "Browser" button in the test page and open an OpenType font file.
-(4) Type a word in the "Word" input box and press the "OK" button.
+* JsType provides a very simple API, which consists of one object 'org.jstype.FontReader' and three member functions 'getBitmap', 'getOutline', and 'setOptions'.
+* JsType is capable of parsing TrueType fonts and rasterizing their outlines.
+* JsType is capable of producing a Data URI representing a monochrome PNG image and an anti-aliased one (using 16 colors) from given text.
+* JsType is capable of producing a Data URI representing a monochrome BMP image and an anti-aliased one (using 16 colors) from given text.
+* JsType is capable of producing a list of SVG paths representing the outline of a character.
+* JsType is capable of retrieving the presentation forms of Arabic characters and rendering them.
+* JsType is capable of retrieving the presentation forms of Japanese characters used in vertical writing.
+
+The following is a non-exhaustive list of features not provided by jsType.
+
+* JsType is not capable of rendering TrueType fonts that do not have TrueType outlines.
+* JsType is not capable of rendering TrueType fonts that do not have code-mapping tables from Unicode characters to font glyphs.
