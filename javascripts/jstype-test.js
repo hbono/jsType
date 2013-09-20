@@ -20,7 +20,7 @@ test.reader_ = null;
  * writes its result.
  * @private
  */
-test.drawText_ = function () {
+test.drawText_ = function() {
   var word = document.getElementById('word');
   if (!word || word.value.length == 0) {
     return;
@@ -100,11 +100,11 @@ test.handleClick_ = function(event) {
 };
 
 /**
- * Called when a user clicks the "OK" button in the test page.
+ * Called when a user chooses a file in the "Font" input.
  * @param {Event} event
  * @private
  */
-test.handleChange_ = function (event) {
+test.handleChange_ = function(event) {
   var file = event.target;
   var disabled = !file.files || file.files.length == 0;
   test.reader_ = null;
@@ -113,6 +113,16 @@ test.handleChange_ = function (event) {
     var item = document.getElementById(ids[i]);
     if (item) {
       item.disabled = disabled;
+    }
+  }
+  var step = disabled ? 0 : 1;
+  var steps = ['step1', 'step2'];
+  for (var i = 0; i < steps.length; ++i) {
+    var item = document.getElementById(steps[i]);
+    if (i == step) {
+      item.style.color = 'red';
+    } else {
+      item.style.color = 'gray';
     }
   }
 };
@@ -125,6 +135,12 @@ test.handleChange_ = function (event) {
 test.addFontInput_ = function(parent) {
   var group = document.createElement('div');
   parent.appendChild(group);
+
+  var description = document.createElement('div');
+  description.innerText = '1. Choose a TrueType font.'
+  description.id = 'step1';
+  description.style.color = 'red';
+  group.appendChild(description);
 
   var label = document.createElement('label');
   label.setAttribute('for', 'font');
@@ -146,6 +162,14 @@ test.addFontInput_ = function(parent) {
 test.addSizeInput_ = function(parent) {
   var group = document.createElement('div');
   parent.appendChild(group);
+
+  var description = document.createElement('div');
+  description.innerText =
+      '2. Select the font style (size, color, and writing mode), ' +
+      'type text, and click the "Draw" button.';
+  description.id = 'step2';
+  description.style.color = 'gray';
+  group.appendChild(description);
 
   var label = document.createElement('label');
   label.setAttribute('for', 'size');
