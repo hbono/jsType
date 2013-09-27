@@ -17,6 +17,12 @@ org.jstype.COMPILED = false;
 org.jstype.USE_PNG = true;
 
 /**
+ * Whether to create a NodeJS module.
+ * @define {boolean}
+ */
+org.jstype.NODEJS = false;
+
+/**
  * Whether to enable the debugging features of this library.
  * @define {boolean}
  */
@@ -260,7 +266,7 @@ org.jstype.warn = function(message) {
  * @param {Object.<string,Function>} methods
  */
 org.jstype.exportObject = function(name, object, methods) {
-  if (!org.jstype.COMPILED) {
+  if (!org.jstype.COMPILED || org.jstype.NODEJS) {
     return;
   }
   var parts = name.split('.');
@@ -4293,12 +4299,28 @@ org.jstype.FontReader.prototype.setOptions = function(options) {
 };
 
 // Export the org.jstype.FontReader class and its public methods.
-org.jstype.exportObject(
-    'org.jstype.FontReader',
-    org.jstype.FontReader,
-    {
+org.jstype.exportObject('org.jstype.FontReader', org.jstype.FontReader, {
+  'getBitmap': org.jstype.FontReader.prototype.getBitmap,
+  'getOutline': org.jstype.FontReader.prototype.getOutline,
+  'setOptions': org.jstype.FontReader.prototype.setOptions
+});
+
+// Attach the org.jstype.FontReader object and its public methods to the
+// module.exports object to export them on NodeJS. (This code is a little
+// tricky to avoid compilation errors when compiling this file with the closure
+// compiler.)
+if (org.jstype.NODEJS) {
+  var module = module || {};
+  var jsObject = org.jstype.FontReader;
+  if (org.jstype.COMPILED) {
+    var jsMethods = {
       'getBitmap': org.jstype.FontReader.prototype.getBitmap,
       'getOutline': org.jstype.FontReader.prototype.getOutline,
       'setOptions': org.jstype.FontReader.prototype.setOptions
     }
-);
+    for (var key in jsMethods) {
+      jsObject.prototype[key] = jsMethods[key];
+    }
+  }
+  module['exports'] = jsObject;
+}
