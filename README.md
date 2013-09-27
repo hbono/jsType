@@ -1,12 +1,15 @@
 jsType - a text-rendering engine written in JavaScript
+======================================================
 
-1. What is jsType?
+What is jsType?
+---------------
 
 JsType is a software text-rendering engine written in JavaScript that is designed to be run on browsers and NodeJS. JsType basically consists of two parts: a font-rendering engine (like FreeType) and a text-processing engine needed for rendering internationalized text (like Pango). It processes internationalized text, renders its characters, and generates a Data URI or a SVG path so web applications can use its output without conversions.
 Note that jsType is designed for implementing minimal features needed for rendering internationalized text with TrueType fonts and it does not implement lots of features needed for supporting all TrueType fonts, e.g. jsType does not have the TrueType bytecode interpreter or PostScript interpreter.
-For those who like to evaluate jsType with your browser, we provide <a href="http://hbono.github.com/jsType/jstype-test.html">a test page</a> that renders text with a TrueType font and creates a PNG image.
+For those who like to evaluate jsType with your browser, we provide [a test page](http://hbono.github.com/jsType/jstype-test.html) that renders text with a TrueType font and creates a PNG image.
 
-2. Features
+Features
+--------
 
 The following is a non-exhaustive list of features provided by jsType.
 
