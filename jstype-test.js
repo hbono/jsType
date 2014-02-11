@@ -53,8 +53,8 @@ test.drawText_ = function() {
   if (size) {
     fontSize = size.value | 0;
   }
-  var writing = document.getElementById('writing');
   var options = {};
+  var writing = document.getElementById('writing');
   options['vertical'] = writing && writing.value == 'vertical';
   test.reader_.setOptions(options);
 
@@ -108,7 +108,8 @@ test.handleChange_ = function(event) {
   var file = event.target;
   var disabled = !file.files || file.files.length == 0;
   test.reader_ = null;
-  var ids = ['size', 'color', 'direction', 'writing', 'word', 'submit'];
+  var ids =
+      ['size', 'color', 'direction', 'writing', 'sample', 'word', 'submit'];
   for (var i = 0; i < ids.length; ++i) {
     var item = document.getElementById(ids[i]);
     if (item) {
@@ -128,6 +129,23 @@ test.handleChange_ = function(event) {
 };
 
 /**
+ * Called when a user chooses a sample text.
+ * @param {Event} event
+ * @private
+ */
+test.handleChangeSample_ = function (event) {
+  var sample = event.target;
+  var word = document.getElementById('word');
+  if (sample.value) {
+    word.value = sample.value;
+    word.disabled = true;
+  } else {
+    word.value = '';
+    word.disabled = false;
+  }
+};
+
+/**
  * Adds a file-input box to the specified element.
  * @param {Element} parent
  * @private
@@ -137,14 +155,14 @@ test.addFontInput_ = function(parent) {
   parent.appendChild(group);
 
   var description = document.createElement('div');
-  description.innerText = '1. Choose a TrueType font.'
+  description.textContent = '1. Choose a TrueType font.'
   description.id = 'step1';
   description.style.color = 'red';
   group.appendChild(description);
 
   var label = document.createElement('label');
   label.setAttribute('for', 'font');
-  label.innerText = 'Font: ';
+  label.textContent = 'Font: ';
   group.appendChild(label);
 
   var font = document.createElement('input');
@@ -164,16 +182,16 @@ test.addSizeInput_ = function(parent) {
   parent.appendChild(group);
 
   var description = document.createElement('div');
-  description.innerText =
+  description.textContent =
       '2. Select the font style (size, color, and writing mode), ' +
-      'type text, and click the "Draw" button.';
+      'type text (or choose a sample), and click the "Draw" button.';
   description.id = 'step2';
   description.style.color = 'gray';
   group.appendChild(description);
 
   var label = document.createElement('label');
   label.setAttribute('for', 'size');
-  label.innerText = 'Size: ';
+  label.textContent = 'Size: ';
   group.appendChild(label);
 
   var size = document.createElement('input');
@@ -198,7 +216,7 @@ test.addColorInput_ = function(parent) {
 
   var label = document.createElement('label');
   label.setAttribute('for', 'color');
-  label.innerText = 'Color: ';
+  label.textContent = 'Color: ';
   group.appendChild(label);
 
   var color = document.createElement('select');
@@ -208,7 +226,7 @@ test.addColorInput_ = function(parent) {
   for (var i = 0; i < options.length; ++i) {
     var option = document.createElement('option');
     option.value = options[i];
-    option.innerText = options[i];
+    option.textContent = options[i];
     option.style.color = options[i];
     option.style.backgroundColor = options[i];
     color.appendChild(option);
@@ -227,7 +245,7 @@ test.addWritingModeInput_ = function(parent) {
 
   var label = document.createElement('label');
   label.setAttribute('for', 'layout');
-  label.innerText = 'Writing Mode: ';
+  label.textContent = 'Writing Mode: ';
   group.appendChild(label);
 
   var select = document.createElement('select');
@@ -237,7 +255,7 @@ test.addWritingModeInput_ = function(parent) {
   for (var i = 0; i < options.length; ++i) {
     var option = document.createElement('option');
     option.value = options[i];
-    option.innerText = options[i];
+    option.textContent = options[i];
     select.appendChild(option);
   }
   group.appendChild(select);
@@ -254,15 +272,36 @@ test.addWordInput_ = function(parent) {
 
   var label = document.createElement('label');
   label.setAttribute('for', 'word');
-  label.innerText = 'Text: ';
+  label.textContent = 'Text: ';
   group.appendChild(label);
+
+  var sample = document.createElement('select');
+  sample.id = 'sample';
+  var options = [
+    '',
+    'abc',
+    '\u00e9',
+    '\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064A\u0643\u0645.',
+    '\u3066\u3059\u3068\u3002'
+  ];
+  for (var i = 0; i < options.length; ++i) {
+    var option = document.createElement('option');
+    option.value = options[i];
+    option.textContent = options[i];
+    sample.appendChild(option);
+  }
+  sample.addEventListener('change', test.handleChangeSample_, false);
+  sample.disabled = true;
+  group.appendChild(sample);
 
   var word = document.createElement('input');
   word.type = 'text';
   word.id = 'word';
   //word.value = '\u00e9';
-  word.value = '\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064A\u0643\u0645.';
-  word.value = '\u3066\u3059\u3068\u3002';
+  //word.value = '\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064A\u0643\u0645.';
+  //word.value = '\u3066\u3059\u3068\u3002';
+  //word.value = 'abc';
+  word.value = '';
   word.disabled = true;
   group.appendChild(word);
 

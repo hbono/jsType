@@ -11,6 +11,12 @@ org.jstype = org.jstype || {};
 org.jstype.COMPILED = false;
 
 /**
+ * Whether to enable the debugging features of this library.
+ * @define {boolean}
+ */
+org.jstype.DEBUG = false;
+
+/**
  * Whether to write PNG images.
  * @define {boolean}
  */
@@ -21,12 +27,6 @@ org.jstype.USE_PNG = true;
  * @define {boolean}
  */
 org.jstype.NODEJS = false;
-
-/**
- * Whether to enable the debugging features of this library.
- * @define {boolean}
- */
-org.jstype.DEBUG = false;
 
 /**
  * Whether to fill the inside of a glyph. This feature is provided only for
@@ -1538,8 +1538,7 @@ org.jstype.GsubTable.LookupRecord.Delegate = function() {};
  * @return {number}
  */
 org.jstype.GsubTable.LookupRecord.Delegate.prototype.substitute =
-    function(glyphId, index) {
-};
+    function(glyphId, index) {};
 
 /**
  * @param {number} deltaGlyphId
@@ -1749,8 +1748,134 @@ org.jstype.Bitmap.prototype.getString = function() {
 };
 
 /**
- * A class that serializes a stream of data to a base64 string.
+ * An interface that serializes a stream of data.
+ * @interface
+ */
+org.jstype.DataWriter = function() {};
+
+/**
+ * Writes one byte to the output stream. This function copies the input byte to
+ * a cache and writes four base64 characters when the cache has 24 bits of data.
+ * @param {number} n
+ */
+org.jstype.DataWriter.prototype.write = function(n) {};
+
+/**
+ * Writes a 32-bit integer to the output stream.
+ * @param {number} n
+ */
+org.jstype.DataWriter.prototype.write32 = function(n) {};
+
+/**
+ * Writes an array of data. This function is designed for writing many bytes of
+ * data at once.
+ * @param {Uint8Array} data
+ * @param {number} offset
+ * @param {number} length
+ */
+org.jstype.DataWriter.prototype.writeArray = function(data, offset, length) {};
+
+/**
+ * Closes this output stream. This function finishes serializing data and
+ * returns a URL to the serialized data.
+ * @return {string}
+ */
+org.jstype.DataWriter.prototype.close = function() {};
+
+/**
+ * A class that serializes a stream of data to a Blob URL.
+ * @param {string} type
+ * @implements {org.jstype.DataWriter}
+ * @constructor
+ */
+org.jstype.BlobWriter = function(type) {
+  /**
+   * The MIME type
+   * @type {string}
+   * @private
+   */
+  this.type_ = type;
+
+  /**
+   * The data cached by this object.
+   * @type {Uint8Array}
+   * @private
+   */
+  this.data_ = null;
+
+  /**
+   * The number of bits cached by this object.
+   * @type {number}
+   * @private
+   */
+  this.size_ = 0;
+
+  /**
+   * The offset to the data array.
+   * @type {number}
+   * @private
+   */
+  this.offset_ = 0;
+};
+
+/**
+ * @param {number} size
+ * @return {Uint8Array}
+ * @private
+ */
+org.jstype.BlobWriter.prototype.getData_ = function(size) {
+  if (this.size_ < this.offset_ + size) {
+    var SIZE_MASK = 1024 - 1;
+    this.size_ = (this.offset_ + size + SIZE_MASK) & ~SIZE_MASK;
+    var data = new Uint8Array(this.size_);
+    if (this.data_) {
+      data.set(this.data_, 0);
+    }
+    this.data_ = data;
+  }
+  return this.data_;
+};
+
+/** @override */
+org.jstype.BlobWriter.prototype.write = function (n) {
+  var data = this.getData_(1);
+  data[this.offset_] = n;
+  ++this.offset_;
+};
+
+/** @override */
+org.jstype.BlobWriter.prototype.write32 = function(n) {
+  var data = this.getData_(4);
+  data[this.offset_] = n >>> 24;
+  data[this.offset_ + 1] = n >>> 16;
+  data[this.offset_ + 2] = n >>> 8;
+  data[this.offset_ + 3] = n;
+  this.offset_ += 4;
+};
+
+/** @override */
+org.jstype.BlobWriter.prototype.writeArray = function(source, offset, length) {
+  var data = this.getData_(length);
+  for (var i = offset; i < offset + length; ++i) {
+    data[this.offset_] = source[i];
+    ++this.offset_;
+  }
+};
+
+/** @override */
+org.jstype.BlobWriter.prototype.close = function() {
+  if (!this.data_) {
+    return '';
+  }
+  var data = this.data_.subarray(0, this.offset_);
+  var blob = new Blob([data], { 'type': this.type_ });
+  return org.jstype.global.URL.createObjectURL(blob);
+};
+
+/**
+ * A class that serializes a stream of data to a Data URI.
  * @param {string} prefix
+ * @implements {org.jstype.DataWriter}
  * @constructor
  */
 org.jstype.URIWriter = function(prefix) {
@@ -1804,11 +1929,7 @@ org.jstype.URIWriter.prototype.writeText_ = function(data) {
   this.text_ += org.jstype.URIWriter.BASE64_[data & 0x3f];
 };
 
-/**
- * Writes one byte to the output stream. This function copies the input byte to
- * a cache and writes four base64 characters when the cache has 24 bits of data.
- * @param {number} n
- */
+/** @override */
 org.jstype.URIWriter.prototype.write = function(n) {
   this.data_ <<= 8;
   this.data_ |= n;  // n & 0xff;
@@ -1820,10 +1941,7 @@ org.jstype.URIWriter.prototype.write = function(n) {
   }
 };
 
-/**
- * Writes a 32-bit integer to the output stream.
- * @param {number} n
- */
+/** @override */
 org.jstype.URIWriter.prototype.write32 = function(n) {
   if (this.bits_ == 0) {
     this.writeText_((n >>> 8) & 0xffffff);
@@ -1841,13 +1959,7 @@ org.jstype.URIWriter.prototype.write32 = function(n) {
   }
 };
 
-/**
- * Writes an array of data. This function is designed for writing many bytes of
- * data at once.
- * @param {Uint8Array} data
- * @param {number} offset
- * @param {number} length
- */
+/** @override */
 org.jstype.URIWriter.prototype.writeArray = function(data, offset, length) {
   if (length < 2) {
     this.write(data[offset]);
@@ -1886,11 +1998,7 @@ org.jstype.URIWriter.prototype.writeArray = function(data, offset, length) {
   }
 };
 
-/**
- * Closes this output stream. This function writes remaining bits as base64
- * characters.
- * @return {string}
- */
+/** @override */
 org.jstype.URIWriter.prototype.close = function() {
   if (this.bits_ == 8) {
     this.data_ <<= 16;
@@ -1910,14 +2018,16 @@ org.jstype.URIWriter.prototype.close = function() {
 /**
  * A class that creates a PNG image from a bitmap and writes it to a DataURI
  * text.
+ * @param {boolean} blob
  * @constructor
  */
-org.jstype.PNGWriter = function() {
+org.jstype.PNGWriter = function(blob) {
   /**
-   * @type {org.jstype.URIWriter}
+   * @type {org.jstype.DataWriter}
    * @private
    */
-  this.uri_ = new org.jstype.URIWriter('data:image/png;base64,');
+  this.uri_ = blob ? new org.jstype.BlobWriter('image/png') :
+      new org.jstype.URIWriter('data:image/png;base64,');
 };
 
 /**
@@ -2119,20 +2229,20 @@ org.jstype.PNGWriter.getGrayImage_ = function(data, width, height) {
 /**
  * Calculates the Adler-32 checksum of the specified data and returns it.
  * @param {Uint8Array} data
- * @return {number}
+ * @return {Uint8Array}
  * @private
  */
 org.jstype.PNGWriter.getAdler32_ = function(data) {
-  var adler = 1;
-  var s1 = adler & 0xffff;
-  var s2 = (adler >> 16) & 0xffff;
+  var s1 = 1;
+  var s2 = 0;
   var length = data.length;
   for (var i = 0; i < length; ++i) {
     var BASE = 65521;  // largest prime smaller than 65536
     s1 = (s1 + data[i]) % BASE;
     s2 = (s2 + s1) % BASE;
   }
-  return (s2 << 16) + s1;
+  var adler = (s2 << 16) + s1;
+  return new Uint8Array([adler >> 24, adler >> 16, adler >> 8, adler]);
 }
 
 /**
@@ -2349,13 +2459,13 @@ org.jstype.PNGWriter.prototype.writeImage_ = function(image) {
   //   +------------------+
   //           ...
   //   +------------------+
-  //   | DEFLATE HEADER N |     5
+  //   | DEFLATE HEADER N |    5
   //   +------------------+
-  //   |  DEFLATE DATA N  |     image.length % 32768
+  //   |  DEFLATE DATA N  |    image.length % 32768
   //   +------------------+
-  //   |   ZLIB FOOTER    |     4
+  //   |   ZLIB FOOTER    |    4
   //   +------------------+
-  //   |   CHUNK CRC32    |     4
+  //   |   CHUNK CRC32    |    4
   //   +------------------+
   //
   var ZLIB_HEADER_SIZE = 2;
@@ -2409,7 +2519,7 @@ org.jstype.PNGWriter.prototype.writeImage_ = function(image) {
   // Writes the footer of this IDAT chunk, which consists of an Adler-32
   // checksum of the image and a CRC32 checksum of this chunk.
   var adler32 = org.jstype.PNGWriter.getAdler32_(image);
-  this.uri_.write32(adler32);
+  crc32 = this.writeData_(crc32, adler32, 0, 4);
   this.uri_.write32(crc32 ^ 0xffffffff);
 };
 
@@ -2897,8 +3007,7 @@ org.jstype.PathWriter.prototype.close = function() {
  * metrics.
  * @interface
  */
-org.jstype.GlyphModel = function() {
-};
+org.jstype.GlyphModel = function() {};
 
 /**
  * Draws a glyph.
@@ -2909,36 +3018,31 @@ org.jstype.GlyphModel = function() {
  * @param {number} frame
  * @return {number}
  */
-org.jstype.GlyphModel.prototype.draw = function(scale, bitmap, x, y, frame) {
-};
+org.jstype.GlyphModel.prototype.draw = function(scale, bitmap, x, y, frame) {};
 
 /**
  * Returns the outline of this glyph.
  * @return {Array.<string>}
  */
-org.jstype.GlyphModel.prototype.getOutline = function(scale, frame) {
-};
+org.jstype.GlyphModel.prototype.getOutline = function(scale, frame) {};
 
 /**
  * Returns the horizontal advance of this glyph.
  * @return {number}
  */
-org.jstype.GlyphModel.prototype.getAdvance = function() {
-};
+org.jstype.GlyphModel.prototype.getAdvance = function() {};
 
 /**
  * Returns the width of this glyph.
  * @return {number}
  */
-org.jstype.GlyphModel.prototype.getWidth = function() {
-};
+org.jstype.GlyphModel.prototype.getWidth = function() {};
 
 /**
  * Returns the height of this glyph.
  * @return {number}
  */
-org.jstype.GlyphModel.prototype.getHeight = function() {
-};
+org.jstype.GlyphModel.prototype.getHeight = function() {};
 
 /**
  * A class representing a font glyph of a space character. A space character
@@ -3367,16 +3471,14 @@ org.jstype.CharacterIterator = function(text, rewriter) {
  * An interface that replaces a character to another.
  * @interface
  */
-org.jstype.CharacterIterator.CodeRewriter = function() {
-};
+org.jstype.CharacterIterator.CodeRewriter = function() {};
 
 /**
  * Returns an alternative character.
  * @param {number} code
  * @return {number}
  */
-org.jstype.CharacterIterator.CodeRewriter.prototype.getCode = function(code) {
-};
+org.jstype.CharacterIterator.CodeRewriter.prototype.getCode = function(code) {};
 
 /**
  * A class that replaces a character to a presentation character used by
@@ -3787,6 +3889,12 @@ org.jstype.FontReader = function(data, size, opt_glyphQuota) {
    * @private
    */
   this.rewriter_ = null;
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.useBlob_ = false;
 
   /**
    * @type {number}
@@ -4252,7 +4360,7 @@ org.jstype.FontReader.prototype.getBitmap = function(text,
   var data = new Uint8Array((width >> 3) * height);
   if (this.draw(text, fontSize, data, width, height)) {
     if (org.jstype.USE_PNG) {
-      var writer = new org.jstype.PNGWriter();
+      var writer = new org.jstype.PNGWriter(this.useBlob_);
       return writer.getURI(data, width, height, colors);
     }
     if (depth == 1) {
@@ -4274,12 +4382,12 @@ org.jstype.FontReader.prototype.getBitmap = function(text,
  * @return {Array.<string>}
  */
 org.jstype.FontReader.prototype.getOutline = function(text, fontSize) {
-  if (!this.openFont_(0)) {
-    return [];
-  }
   // Even though this text consists only of one character, we create a
   // CharacterIterator object so it can replace the input character to its
   // presentation form.
+  if (!this.openFont_(0)) {
+    return [];
+  }
   var run = new org.jstype.CharacterIterator(text, this.rewriter_);
   var glyph = this.getGlyph_(run.charCodeAt(0));
   return glyph.getOutline(fontSize * this.fontScale_, ++this.glyphFrame_);
@@ -4296,6 +4404,7 @@ org.jstype.FontReader.prototype.setOptions = function(options) {
   } else {
     this.rewriter_ = null;
   }
+  this.useBlob_ = !!options['blob'] && !!org.jstype.global.Blob;
 };
 
 // Export the org.jstype.FontReader class and its public methods.
